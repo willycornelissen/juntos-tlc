@@ -112,12 +112,12 @@ T7 → T8 → T9 → T10
 
 **Done when**:
 
-- [ ] `calculateAttendancePercentage` counts `P`, `A`, `R` as present and `P`, `A`, `R`, `F`, `J` in the denominator, returning `null` when denominator is `0`
-- [ ] `computeStudentMetrics` sorts lessons chronologically by `isoDate` descending, slices the 9 most recent lessons for `percentTrim`, computes `percentAno` across all lessons, and tallies each code (`P`, `A`, `R`, `F`, `J`)
-- [ ] `computeLessonPresenceRate` computes the class-wide presence percentage for any `dateKey`
-- [ ] Unit tests in `src/domain/__tests__/attendanceCalc.test.ts` verify exact percentages for all 3 students in `Turma Pampulha QUA.xlsx` (`14820`, `7728`, `14779`), empty lesson columns returning `null` (`-`), and unordered lesson arrays
-- [ ] Gate check passes: `npm run test:run`
-- [ ] Test count: ≥ 10 cumulative tests pass
+- [x] `calculateAttendancePercentage` counts `P`, `A`, `R` as present and `P`, `A`, `R`, `F`, `J` in the denominator, returning `null` when denominator is `0`
+- [x] `computeStudentMetrics` sorts lessons chronologically by `isoDate` descending, slices the 9 most recent lessons for `percentTrim`, computes `percentAno` across all lessons, and tallies each code (`P`, `A`, `R`, `F`, `J`)
+- [x] `computeLessonPresenceRate` computes the class-wide presence percentage for any `dateKey`
+- [x] Unit tests in `src/domain/__tests__/attendanceCalc.test.ts` verify exact percentages for all 3 students in `Turma Pampulha QUA.xlsx` (`14820`, `7728`, `14779`), empty lesson columns returning `null` (`-`), and unordered lesson arrays
+- [x] Gate check passes: `npm run test:run`
+- [x] Test count: ≥ 10 cumulative tests pass
 
 **Tests**: unit
 **Gate**: quick
