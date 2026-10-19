@@ -172,13 +172,13 @@ T7 → T8 → T9 → T10
 
 **Done when**:
 
-- [ ] Matches students by canonical `ID` (falling back to normalized `Nome` when `ID` is empty) and updates display name if changed (e.g., room suffix)
-- [ ] Marks previously `Ativo` students absent from the new `.xlsx` as `Inscrição Baixada`, preserves all prior `presencas`, and appends `"Inscrição baixada: aluno não consta na planilha importada em DD/MM/AAAA."`
-- [ ] Does NOT append a duplicate system comment when an already `Inscrição Baixada` student remains absent in later imports
-- [ ] Restores a previously `Inscrição Baixada` student back to `Ativo` with a re-enrollment system comment if they reappear in a subsequent import
-- [ ] Unit tests in `src/domain/__tests__/syncEngine.test.ts` cover initial import, student drop, idempotent repeat import, re-enrollment, and new lesson date merge
-- [ ] Gate check passes: `npm run test:run`
-- [ ] Test count: ≥ 25 cumulative tests pass
+- [x] Matches students by canonical `ID` (falling back to normalized `Nome` when `ID` is empty) and updates display name if changed (e.g., room suffix)
+- [x] Marks previously `Ativo` students absent from the new `.xlsx` as `Inscrição Baixada`, preserves all prior `presencas`, and appends `"Inscrição baixada: aluno não consta na planilha importada em DD/MM/AAAA."`
+- [x] Does NOT append a duplicate system comment when an already `Inscrição Baixada` student remains absent in later imports
+- [x] Restores a previously `Inscrição Baixada` student back to `Ativo` with a re-enrollment system comment if they reappear in a subsequent import
+- [x] Unit tests in `src/domain/__tests__/syncEngine.test.ts` cover initial import, student drop, idempotent repeat import, re-enrollment, and new lesson date merge
+- [x] Gate check passes: `npm run test:run`
+- [x] Test count: ≥ 25 cumulative tests pass
 
 **Tests**: unit
 **Gate**: quick
