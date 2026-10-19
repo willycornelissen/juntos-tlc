@@ -141,12 +141,12 @@ T7 → T8 → T9 → T10
 
 **Done when**:
 
-- [ ] Parses `Turma Pampulha QUA.xlsx` accurately: `cidadePlanilha = "Belo Horizonte"`, `nomeTurmaPlanilha = "Turma Pampulha (QUA)"`, 31 lessons (`28/01/26` to `14/10/26`) with themes and instructors, and 3 students (`14820`, `7728`, `14779`) with exact attendance marks
-- [ ] Normalizes `DD/MM/YY` and `DD/MM/YYYY` dates into sortable `isoDate` (`YYYY-MM-DD`) and `dateKey` (`DD/MM/YY`)
-- [ ] Rejects invalid workbooks, missing `Row 6` (`ID` / `Nome`) headers, or workbooks with 0 student rows below `Row 6` by throwing `ChamadaParseError`
-- [ ] Unit tests in `src/domain/__tests__/chamadaParser.test.ts` test both the real `Turma Pampulha QUA.xlsx` file and malformed/empty `.xlsx` buffers
-- [ ] Gate check passes: `npm run test:run`
-- [ ] Test count: ≥ 18 cumulative tests pass
+- [x] Parses `Turma Pampulha QUA.xlsx` accurately: `cidadePlanilha = "Belo Horizonte"`, `nomeTurmaPlanilha = "Turma Pampulha (QUA)"`, 31 lessons (`28/01/26` to `14/10/26`) with themes and instructors, and 3 students (`14820`, `7728`, `14779`) with exact attendance marks
+- [x] Normalizes `DD/MM/YY` and `DD/MM/YYYY` dates into sortable `isoDate` (`YYYY-MM-DD`) and `dateKey` (`DD/MM/YY`)
+- [x] Rejects invalid workbooks, missing `Row 6` (`ID` / `Nome`) headers, or workbooks with 0 student rows below `Row 6` by throwing `ChamadaParseError`
+- [x] Unit tests in `src/domain/__tests__/chamadaParser.test.ts` test both the real `Turma Pampulha QUA.xlsx` file and malformed/empty `.xlsx` buffers
+- [x] Gate check passes: `npm run test:run`
+- [x] Test count: ≥ 18 cumulative tests pass
 
 **Tests**: unit
 **Gate**: quick
