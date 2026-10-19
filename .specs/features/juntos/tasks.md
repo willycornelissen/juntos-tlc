@@ -84,11 +84,11 @@ T7 → T8 → T9 → T10
 
 **Done when**:
 
-- [ ] Dependencies (`react`, `react-dom`, `xlsx`, `firebase`, `vitest`, `@testing-library/react`, `@testing-library/jest-dom`, `jsdom`, `typescript`, `vite`, `@vitejs/plugin-react`) are installed and scripts (`dev`, `build`, `test:run`) are configured
-- [ ] `src/domain/types.ts` exports `AttendanceCode`, `TurmaStatus`, `EnrollmentStatus`, `LessonColumn`, `CommentEntry`, `Turma`, `AlunoRecord`, `StudentMetrics`, `ParsedChamada`, and `ReimportPlan` plus comment/metadata validation helpers
-- [ ] Unit tests in `src/domain/__tests__/types.test.ts` verify type guards and input validation bounds (non-empty comments 1-2000 chars, valid attendance codes)
-- [ ] Gate check passes: `npm run build && npm run test:run`
-- [ ] Test count: ≥ 4 tests pass
+- [x] Dependencies (`react`, `react-dom`, `xlsx`, `firebase`, `vitest`, `@testing-library/react`, `@testing-library/jest-dom`, `jsdom`, `typescript`, `vite`, `@vitejs/plugin-react`) are installed and scripts (`dev`, `build`, `test:run`) are configured
+- [x] `src/domain/types.ts` exports `AttendanceCode`, `TurmaStatus`, `EnrollmentStatus`, `LessonColumn`, `CommentEntry`, `Turma`, `AlunoRecord`, `StudentMetrics`, `ParsedChamada`, and `ReimportPlan` plus comment/metadata validation helpers
+- [x] Unit tests in `src/domain/__tests__/types.test.ts` verify type guards and input validation bounds (non-empty comments 1-2000 chars, valid attendance codes)
+- [x] Gate check passes: `npm run build && npm run test:run`
+- [x] Test count: ≥ 4 tests pass
 
 **Tests**: unit
 **Gate**: build
