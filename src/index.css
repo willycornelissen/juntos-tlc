@@ -1,0 +1,442 @@
+/* Estante-inspired Editorial Stylesheet for Juntos */
+:root {
+  color-scheme: light dark;
+  --bg: #f6f5f1;
+  --surface: #ffffff;
+  --surface-muted: #efede6;
+  --text: #1f1f1f;
+  --muted: #6c6a65;
+  --border: #dfddd4;
+  --primary: #2c5f4a;
+  --primary-hover: #214939;
+  --primary-soft: rgba(44, 95, 74, 0.12);
+  --accent: #f59e0b;
+  --danger: #b42318;
+  --danger-bg: rgba(180, 35, 24, 0.1);
+  --success: #1b5e20;
+  --success-bg: rgba(27, 94, 32, 0.12);
+  --shadow: 0 4px 16px rgba(0, 0, 0, 0.05);
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg: #1b1b1b;
+    --surface: #252525;
+    --surface-muted: #2e2e2e;
+    --text: #f3f2ee;
+    --muted: #a6a39b;
+    --border: #383838;
+    --primary: #3b7d62;
+    --primary-hover: #4a9677;
+    --primary-soft: rgba(59, 125, 98, 0.22);
+    --accent: #fbbf24;
+    --danger: #f87171;
+    --danger-bg: rgba(248, 113, 113, 0.15);
+    --success: #6ee7b7;
+    --success-bg: rgba(110, 231, 183, 0.15);
+    --shadow: 0 6px 20px rgba(0, 0, 0, 0.35);
+  }
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  background-color: var(--bg);
+  color: var(--text);
+  font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* Editorial Hero Header */
+.hero {
+  border-bottom: 1px solid var(--border);
+  background: var(--surface);
+  padding: 1.5rem 2rem;
+}
+
+.hero-inner {
+  max-width: 1240px;
+  margin: 0 auto;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+
+.hero-brand h1 {
+  font-family: Georgia, 'Times New Roman', serif;
+  font-size: 2.2rem;
+  font-weight: 700;
+  margin: 0;
+  letter-spacing: -0.02em;
+  color: var(--primary);
+}
+
+.hero-brand p {
+  margin: 0.2rem 0 0;
+  color: var(--muted);
+  font-size: 0.95rem;
+}
+
+.hero-user {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  font-size: 0.9rem;
+  color: var(--muted);
+}
+
+/* Layout Container */
+.container {
+  max-width: 1240px;
+  margin: 0 auto;
+  padding: 2rem;
+}
+
+/* Login Card */
+.login-wrapper {
+  min-height: 80vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1.5rem;
+}
+
+.login-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 2.25rem;
+  width: 100%;
+  max-width: 420px;
+  box-shadow: var(--shadow);
+}
+
+.login-card h1 {
+  font-family: Georgia, 'Times New Roman', serif;
+  font-size: 2.25rem;
+  margin: 0 0 0.25rem;
+  color: var(--primary);
+}
+
+.login-card .subtitle {
+  color: var(--muted);
+  margin: 0 0 1.5rem;
+  font-size: 0.95rem;
+}
+
+/* Tabs */
+.tabs {
+  display: flex;
+  gap: 0.5rem;
+  border-bottom: 1px solid var(--border);
+  margin-bottom: 1.75rem;
+  flex-wrap: wrap;
+}
+
+.tab {
+  background: transparent;
+  border: none;
+  border-bottom: 2px solid transparent;
+  padding: 0.65rem 1.1rem;
+  font-size: 0.95rem;
+  font-weight: 500;
+  color: var(--muted);
+  cursor: pointer;
+  transition: color 0.15s ease, border-color 0.15s ease;
+}
+
+.tab:hover {
+  color: var(--text);
+}
+
+.tab.active {
+  color: var(--primary);
+  border-bottom-color: var(--primary);
+  font-weight: 600;
+}
+
+/* Cards & Grid */
+.turmas-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+  gap: 1.25rem;
+}
+
+.card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 1.35rem;
+  box-shadow: var(--shadow);
+  display: flex;
+  flex-direction: column;
+  gap: 0.85rem;
+}
+
+.card-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 0.75rem;
+}
+
+.card-title {
+  font-family: Georgia, 'Times New Roman', serif;
+  font-size: 1.25rem;
+  margin: 0;
+  color: var(--text);
+}
+
+.card-meta {
+  font-size: 0.9rem;
+  color: var(--muted);
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+/* Tags & Badges */
+.tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+}
+
+.tag {
+  display: inline-flex;
+  align-items: center;
+  background: var(--primary-soft);
+  color: var(--primary);
+  border-radius: 999px;
+  padding: 0.2rem 0.65rem;
+  font-size: 0.8rem;
+  font-weight: 600;
+}
+
+.status-badge {
+  display: inline-flex;
+  align-items: center;
+  border-radius: 999px;
+  padding: 0.2rem 0.65rem;
+  font-size: 0.78rem;
+  font-weight: 600;
+}
+
+.status-badge.ativo,
+.status-badge.ativa {
+  background: var(--success-bg);
+  color: var(--success);
+}
+
+.status-badge.baixada,
+.status-badge.encerrada {
+  background: var(--danger-bg);
+  color: var(--danger);
+}
+
+/* Warning & Alerts */
+.warning {
+  background: var(--danger-bg);
+  color: var(--danger);
+  border: 1px solid var(--danger);
+  border-radius: 8px;
+  padding: 0.75rem 1rem;
+  font-size: 0.9rem;
+  margin-bottom: 1rem;
+}
+
+/* Forms & Buttons */
+.form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  margin-bottom: 1rem;
+}
+
+.form-group label {
+  font-size: 0.88rem;
+  font-weight: 600;
+  color: var(--text);
+}
+
+input[type='text'],
+input[type='email'],
+input[type='password'],
+input[type='search'],
+select,
+textarea {
+  background: var(--bg);
+  color: var(--text);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 0.6rem 0.75rem;
+  font-size: 0.95rem;
+  font-family: inherit;
+}
+
+input:focus,
+select:focus,
+textarea:focus {
+  outline: 2px solid var(--primary);
+  border-color: transparent;
+}
+
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.4rem;
+  background: var(--primary);
+  color: #ffffff;
+  border: none;
+  border-radius: 6px;
+  padding: 0.6rem 1.1rem;
+  font-size: 0.92rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.15s ease;
+}
+
+.btn:hover:not(:disabled) {
+  background: var(--primary-hover);
+}
+
+.btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.btn-secondary {
+  background: var(--surface-muted);
+  color: var(--text);
+  border: 1px solid var(--border);
+}
+
+.btn-secondary:hover:not(:disabled) {
+  background: var(--border);
+}
+
+.btn-danger {
+  background: var(--danger);
+  color: #ffffff;
+}
+
+/* Attendance Matrix Table */
+.matrix-wrapper {
+  overflow-x: auto;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: var(--surface);
+}
+
+.matrix-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.88rem;
+}
+
+.matrix-table th,
+.matrix-table td {
+  border-bottom: 1px solid var(--border);
+  border-right: 1px solid var(--border);
+  padding: 0.55rem 0.65rem;
+  text-align: left;
+  white-space: nowrap;
+}
+
+.matrix-table th {
+  background: var(--surface-muted);
+  font-weight: 600;
+}
+
+.matrix-row-clickable {
+  cursor: pointer;
+}
+
+.matrix-row-clickable:hover {
+  background: var(--primary-soft);
+}
+
+.matrix-row-dropped {
+  opacity: 0.82;
+}
+
+/* Attendance Code Badges (P, A, R, F, J) */
+.att-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 1.65rem;
+  height: 1.65rem;
+  border-radius: 4px;
+  font-weight: 700;
+  font-size: 0.8rem;
+}
+
+.att-P {
+  background: var(--success-bg);
+  color: var(--success);
+}
+
+.att-A,
+.att-R {
+  background: rgba(245, 158, 11, 0.18);
+  color: #b45309;
+}
+
+.att-F {
+  background: var(--danger-bg);
+  color: var(--danger);
+}
+
+.att-J {
+  background: var(--surface-muted);
+  color: var(--muted);
+}
+
+/* Modal & Slide-over Drawer */
+.modal-backdrop,
+.drawer-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.45);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 100;
+  padding: 1rem;
+}
+
+.modal-content {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 1.75rem;
+  max-width: 640px;
+  width: 100%;
+  max-height: 90vh;
+  overflow-y: auto;
+  box-shadow: var(--shadow);
+}
+
+.drawer-backdrop {
+  justify-content: flex-end;
+  padding: 0;
+}
+
+.drawer-panel {
+  background: var(--surface);
+  border-left: 1px solid var(--border);
+  width: 100%;
+  max-width: 580px;
+  height: 100vh;
+  overflow-y: auto;
+  padding: 1.75rem;
+  box-shadow: var(--shadow);
+}

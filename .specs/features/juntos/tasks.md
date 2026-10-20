@@ -261,11 +261,11 @@ T7 → T8 → T9 → T10
 
 **Done when**:
 
-- [ ] Renders `Turmas Ativas` and `Turmas Encerradas` filter tabs with class cards showing `nome`, `diaHorario`, `local`, `cátedras` badges, and active/dropped student counts
-- [ ] `+ Nova Turma` form parses an uploaded `.xlsx` file, pre-fills class name from `A2` and location from `A1`, validates required fields (name, day/time, location, ≥1 `cátedra`), and creates the class
-- [ ] Component tests in `src/components/__tests__/TurmasDashboard.test.tsx` verify tab switching, `.xlsx` upload pre-fill, validation error display, and class creation
-- [ ] Gate check passes: `npm run test:run`
-- [ ] Test count: ≥ 46 cumulative tests pass
+- [x] Renders `Turmas Ativas` and `Turmas Encerradas` filter tabs with class cards showing `nome`, `diaHorario`, `local`, `cátedras` badges, and active/dropped student counts
+- [x] `+ Nova Turma` form parses an uploaded `.xlsx` file, pre-fills class name from `A2` and location from `A1`, validates required fields (name, day/time, location, ≥1 `cátedra`), and creates the class
+- [x] Component tests in `src/components/__tests__/TurmasDashboard.test.tsx` verify tab switching, `.xlsx` upload pre-fill, validation error display, and class creation
+- [x] Gate check passes: `npm run test:run`
+- [x] Test count: ≥ 46 cumulative tests pass
 
 **Tests**: integration
 **Gate**: full
