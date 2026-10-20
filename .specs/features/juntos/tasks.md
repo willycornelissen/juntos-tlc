@@ -318,11 +318,11 @@ T7 → T8 → T9 → T10
 
 **Done when**:
 
-- [ ] Parses the uploaded `.xlsx` file and renders a clear diff summary before applying changes (count and names of students dropping to `Inscrição Baixada`, newly enrolled students, and lesson dates)
-- [ ] Applies the re-import plan on confirmation and surfaces actionable `.warning` messages if the file is invalid
-- [ ] Component tests in `src/components/__tests__/ReimportModal.test.tsx` verify diff preview rendering, enrollment drop detection, and confirmation callback
-- [ ] Gate check passes: `npm run test:run`
-- [ ] Test count: ≥ 56 cumulative tests pass
+- [x] Parses the uploaded `.xlsx` file and renders a clear diff summary before applying changes (count and names of students dropping to `Inscrição Baixada`, newly enrolled students, and lesson dates)
+- [x] Applies the re-import plan on confirmation and surfaces actionable `.warning` messages if the file is invalid
+- [x] Component tests in `src/components/__tests__/ReimportModal.test.tsx` verify diff preview rendering, enrollment drop detection, and confirmation callback
+- [x] Gate check passes: `npm run test:run`
+- [x] Test count: ≥ 56 cumulative tests pass
 
 **Tests**: integration
 **Gate**: full
