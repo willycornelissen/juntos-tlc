@@ -6,10 +6,10 @@ Professors teaching recurring philosophy and humanities classes export attendanc
 
 ## Goals
 
-- [ ] Enable authenticated professors to create and manage classes (`turmas`) with schedule (day/time), location, taught subjects (`cátedras`), and initial student/attendance import from the standard `chamada` `.xlsx` spreadsheet format.
-- [ ] Provide an individual student record (`ficha particular`) per class displaying student ID, enrollment status (`Ativo` or `Inscrição Baixada`), trimestral and annual attendance percentages, per-date attendance codes (`P`, `A`, `R`, `F`, `J`) with lesson theme and instructor, and a chronological comment log.
-- [ ] Support subsequent `.xlsx` re-imports on active classes that merge new lesson dates/attendance, add newly enrolled students, and automatically mark missing previously enrolled students as `Inscrição Baixada` with a timestamped system comment in their record.
-- [ ] Allow professors to mark a class as finished (`turma encerrada`) and record closing or ongoing comments on the class.
+- [x] Enable authenticated professors to create and manage classes (`turmas`) with schedule (day/time), location, taught subjects (`cátedras`), and initial student/attendance import from the standard `chamada` `.xlsx` spreadsheet format.
+- [x] Provide an individual student record (`ficha particular`) per class displaying student ID, enrollment status (`Ativo` or `Inscrição Baixada`), trimestral and annual attendance percentages, per-date attendance codes (`P`, `A`, `R`, `F`, `J`) with lesson theme and instructor, and a chronological comment log.
+- [x] Support subsequent `.xlsx` re-imports on active classes that merge new lesson dates/attendance, add newly enrolled students, and automatically mark missing previously enrolled students as `Inscrição Baixada` with a timestamped system comment in their record.
+- [x] Allow professors to mark a class as finished (`turma encerrada`) and record closing or ongoing comments on the class.
 
 ## Out of Scope
 
@@ -174,20 +174,20 @@ Each requirement gets a unique ID for tracking across design, tasks, and validat
 
 | Requirement ID | Story | Phase | Status |
 | -------------- | ----- | ----- | ------ |
-| AUTH-01 | P1: Autenticação do Professor e Isolamento de Dados (AC 1, 2, 4) — T5, T7 | Execute | Implementing |
-| AUTH-02 | P1: Autenticação do Professor e Isolamento de Dados (AC 3) — T5, T7 | Execute | Implementing |
-| XLSX-01 | P1: Criação de Turma com Importação Inicial da Planilha Excel (AC 1, 4) — T2, T3 | Execute | Implementing |
-| XLSX-02 | P1: Criação de Turma com Importação Inicial da Planilha Excel (AC 3) — T3 | Execute | Implementing |
-| XLSX-03 | P1: Reimportação de Planilha e Baixa Automática de Inscrição (AC 1, 2, 4, 5) — T4, T9 | Execute | Implementing |
-| XLSX-04 | P1: Reimportação de Planilha e Baixa Automática de Inscrição (AC 3) — T4, T9 | Execute | Implementing |
-| TURMA-01 | P1: Criação de Turma com Importação Inicial da Planilha Excel (AC 2) — T1, T6, T7 | Execute | Implementing |
-| TURMA-02 | P2: Edição de Metadados da Turma e Filtros de Alunos (AC 1, 2) — T6, T8 | Execute | Implementing |
-| TURMA-03 | P1: Encerramento de Turma e Comentários da Turma (AC 1, 2, 3, 4) — T6, T7, T8 | Execute | Implementing |
-| ALUNO-01 | P1: Ficha Particular do Aluno e Comentários do Professor (AC 1, 4) — T1, T8, T10 | Execute | Implementing |
-| ALUNO-02 | P1: Ficha Particular do Aluno e Comentários do Professor (AC 2) — T6, T10 | Execute | Implementing |
-| ALUNO-03 | P1: Ficha Particular do Aluno e Comentários do Professor (AC 3) — T6, T10 | Execute | Implementing |
-| SYNC-01 | Edge Cases & Implicit Dimensions: Atomic batch persistence and error recovery — T6 | Execute | Implementing |
-| SYNC-02 | Edge Cases & Implicit Dimensions: Import diff preview and observability feedback — T4, T9 | Execute | Implementing |
+| AUTH-01 | P1: Autenticação do Professor e Isolamento de Dados (AC 1, 2, 4) — T5, T7 | Execute | Verified |
+| AUTH-02 | P1: Autenticação do Professor e Isolamento de Dados (AC 3) — T5, T7 | Execute | Verified |
+| XLSX-01 | P1: Criação de Turma com Importação Inicial da Planilha Excel (AC 1, 4) — T2, T3 | Execute | Verified |
+| XLSX-02 | P1: Criação de Turma com Importação Inicial da Planilha Excel (AC 3) — T3 | Execute | Verified |
+| XLSX-03 | P1: Reimportação de Planilha e Baixa Automática de Inscrição (AC 1, 2, 4, 5) — T4, T9 | Execute | Verified |
+| XLSX-04 | P1: Reimportação de Planilha e Baixa Automática de Inscrição (AC 3) — T4, T9 | Execute | Verified |
+| TURMA-01 | P1: Criação de Turma com Importação Inicial da Planilha Excel (AC 2) — T1, T6, T7 | Execute | Verified |
+| TURMA-02 | P2: Edição de Metadados da Turma e Filtros de Alunos (AC 1, 2) — T6, T8 | Execute | Verified |
+| TURMA-03 | P1: Encerramento de Turma e Comentários da Turma (AC 1, 2, 3, 4) — T6, T7, T8 | Execute | Verified |
+| ALUNO-01 | P1: Ficha Particular do Aluno e Comentários do Professor (AC 1, 4) — T1, T8, T10 | Execute | Verified |
+| ALUNO-02 | P1: Ficha Particular do Aluno e Comentários do Professor (AC 2) — T6, T10 | Execute | Verified |
+| ALUNO-03 | P1: Ficha Particular do Aluno e Comentários do Professor (AC 3) — T6, T10 | Execute | Verified |
+| SYNC-01 | Edge Cases & Implicit Dimensions: Atomic batch persistence and error recovery — T6 | Execute | Verified |
+| SYNC-02 | Edge Cases & Implicit Dimensions: Import diff preview and observability feedback — T4, T9 | Execute | Verified |
 
 **ID format:** `[CATEGORY]-[NUMBER]`
 
@@ -201,7 +201,7 @@ Each requirement gets a unique ID for tracking across design, tasks, and validat
 
 How we know the feature is successful:
 
-- [ ] Importing `Turma Pampulha QUA.xlsx` parses 100% of its structure (`Belo Horizonte`, `Turma Pampulha (QUA)`, 31 lessons from `28/01/26` to `14/10/26` with themes and instructors, and 3 students `14820`, `7728`, `14779` with matching `% Trim` and `% Ano`).
-- [ ] Re-importing an updated `.xlsx` where a student is removed automatically transitions that student to `Inscrição Baixada`, keeps their prior attendance intact, and records a single dated system comment in their `ficha particular`.
-- [ ] Professor can add comments to both individual students (active or dropped) and classes, and can mark a class as finished (`Encerrada`) with a closing comment.
-- [ ] Static build (`vite build`) succeeds cleanly for GitHub Pages deployment with automated unit/integration tests verifying parser, diff engine, attendance calculations, and UI workflows.
+- [x] Importing `Turma Pampulha QUA.xlsx` parses 100% of its structure (`Belo Horizonte`, `Turma Pampulha (QUA)`, 31 lessons from `28/01/26` to `14/10/26` with themes and instructors, and 3 students `14820`, `7728`, `14779` with matching `% Trim` and `% Ano`).
+- [x] Re-importing an updated `.xlsx` where a student is removed automatically transitions that student to `Inscrição Baixada`, keeps their prior attendance intact, and records a single dated system comment in their `ficha particular`.
+- [x] Professor can add comments to both individual students (active or dropped) and classes, and can mark a class as finished (`Encerrada`) with a closing comment.
+- [x] Static build (`vite build`) succeeds cleanly for GitHub Pages deployment with automated unit/integration tests verifying parser, diff engine, attendance calculations, and UI workflows.

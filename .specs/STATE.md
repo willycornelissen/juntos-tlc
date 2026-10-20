@@ -21,10 +21,10 @@
 ## Handoff
 
 - **Feature**: juntos (`.specs/features/juntos`)
-- **Phase / Task**: Design phase — `.specs/features/juntos/design.md` drafted and awaiting confirmation
-- **Completed**: Specify phase (`spec.md`, `context.md`)
-- **In-progress** (file:line): `.specs/features/juntos/design.md:1`
-- **Next step**: Confirm `design.md` with user and generate atomic `tasks.md`
+- **Phase / Task**: Execute — Verified (`validation.md` PASS, all 10 tasks T1-T10 complete)
+- **Completed**: Specify (`spec.md`, `context.md`), Design (`design.md`), Tasks (`tasks.md`), Execute (`T1`..`T10`, `validation.md`)
+- **In-progress** (file:line): `.specs/features/juntos/validation.md:1`
+- **Next step**: Interactive UAT with user or production deployment to GitHub Pages
 - **Blockers**: none
-- **Uncommitted files**: `.specs/`
+- **Uncommitted files**: none
 - **Branch**: main
