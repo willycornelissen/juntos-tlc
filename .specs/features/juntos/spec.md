@@ -181,12 +181,12 @@ Each requirement gets a unique ID for tracking across design, tasks, and validat
 | XLSX-03 | P1: Reimportação de Planilha e Baixa Automática de Inscrição (AC 1, 2, 4, 5) — T4, T9 | Execute | Implementing |
 | XLSX-04 | P1: Reimportação de Planilha e Baixa Automática de Inscrição (AC 3) — T4, T9 | Execute | Implementing |
 | TURMA-01 | P1: Criação de Turma com Importação Inicial da Planilha Excel (AC 2) — T1, T6, T7 | Execute | Implementing |
-| TURMA-02 | P2: Edição de Metadados da Turma e Filtros de Alunos (AC 1, 2) — T6, T8 | Tasks | In Tasks |
-| TURMA-03 | P1: Encerramento de Turma e Comentários da Turma (AC 1, 2, 3, 4) — T6, T7, T8 | Tasks | In Tasks |
+| TURMA-02 | P2: Edição de Metadados da Turma e Filtros de Alunos (AC 1, 2) — T6, T8 | Execute | Implementing |
+| TURMA-03 | P1: Encerramento de Turma e Comentários da Turma (AC 1, 2, 3, 4) — T6, T7, T8 | Execute | Implementing |
 | ALUNO-01 | P1: Ficha Particular do Aluno e Comentários do Professor (AC 1, 4) — T1, T8, T10 | Execute | Implementing |
-| ALUNO-02 | P1: Ficha Particular do Aluno e Comentários do Professor (AC 2) — T6, T10 | Tasks | In Tasks |
-| ALUNO-03 | P1: Ficha Particular do Aluno e Comentários do Professor (AC 3) — T6, T10 | Tasks | In Tasks |
-| SYNC-01 | Edge Cases & Implicit Dimensions: Atomic batch persistence and error recovery — T6 | Tasks | In Tasks |
+| ALUNO-02 | P1: Ficha Particular do Aluno e Comentários do Professor (AC 2) — T6, T10 | Execute | Implementing |
+| ALUNO-03 | P1: Ficha Particular do Aluno e Comentários do Professor (AC 3) — T6, T10 | Execute | Implementing |
+| SYNC-01 | Edge Cases & Implicit Dimensions: Atomic batch persistence and error recovery — T6 | Execute | Implementing |
 | SYNC-02 | Edge Cases & Implicit Dimensions: Import diff preview and observability feedback — T4, T9 | Execute | Implementing |
 
 **ID format:** `[CATEGORY]-[NUMBER]`

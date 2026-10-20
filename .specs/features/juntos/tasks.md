@@ -230,12 +230,12 @@ T7 → T8 → T9 → T10
 
 **Done when**:
 
-- [ ] Implements `listTurmas`, `getTurmaWithAlunos`, `createTurmaFromImport`, `applyReimportPlan`, `updateTurmaMetadata`, `setTurmaStatus`, `addTurmaComment`, and `addAlunoComment`
-- [ ] Enforces guard against re-importing `.xlsx` into an `Encerrada` class (`TURMA-03` AC 2) and rejects empty/whitespace comments (`ALUNO-03`)
-- [ ] Chunks batch operations into slices of ≤ 450 writes (`chunkArray`) to satisfy Firestore batch limits (`SYNC-01`)
-- [ ] Integration tests in `src/services/__tests__/turmaRepo.test.ts` verify full CRUD lifecycle, user `uid` isolation, batch chunking, class closing/reopening, and comment persistence
-- [ ] Gate check passes: `npm run test:run`
-- [ ] Test count: ≥ 40 cumulative tests pass
+- [x] Implements `listTurmas`, `getTurmaWithAlunos`, `createTurmaFromImport`, `applyReimportPlan`, `updateTurmaMetadata`, `setTurmaStatus`, `addTurmaComment`, and `addAlunoComment`
+- [x] Enforces guard against re-importing `.xlsx` into an `Encerrada` class (`TURMA-03` AC 2) and rejects empty/whitespace comments (`ALUNO-03`)
+- [x] Chunks batch operations into slices of ≤ 450 writes (`chunkArray`) to satisfy Firestore batch limits (`SYNC-01`)
+- [x] Integration tests in `src/services/__tests__/turmaRepo.test.ts` verify full CRUD lifecycle, user `uid` isolation, batch chunking, class closing/reopening, and comment persistence
+- [x] Gate check passes: `npm run test:run`
+- [x] Test count: ≥ 40 cumulative tests pass
 
 **Tests**: integration
 **Gate**: full
