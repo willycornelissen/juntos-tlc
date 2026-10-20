@@ -174,8 +174,8 @@ Each requirement gets a unique ID for tracking across design, tasks, and validat
 
 | Requirement ID | Story | Phase | Status |
 | -------------- | ----- | ----- | ------ |
-| AUTH-01 | P1: Autenticação do Professor e Isolamento de Dados (AC 1, 2, 4) — T5, T7 | Tasks | In Tasks |
-| AUTH-02 | P1: Autenticação do Professor e Isolamento de Dados (AC 3) — T5, T7 | Tasks | In Tasks |
+| AUTH-01 | P1: Autenticação do Professor e Isolamento de Dados (AC 1, 2, 4) — T5, T7 | Execute | Implementing |
+| AUTH-02 | P1: Autenticação do Professor e Isolamento de Dados (AC 3) — T5, T7 | Execute | Implementing |
 | XLSX-01 | P1: Criação de Turma com Importação Inicial da Planilha Excel (AC 1, 4) — T2, T3 | Execute | Implementing |
 | XLSX-02 | P1: Criação de Turma com Importação Inicial da Planilha Excel (AC 3) — T3 | Execute | Implementing |
 | XLSX-03 | P1: Reimportação de Planilha e Baixa Automática de Inscrição (AC 1, 2, 4, 5) — T4, T9 | Execute | Implementing |

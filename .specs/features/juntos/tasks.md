@@ -202,11 +202,11 @@ T7 → T8 → T9 → T10
 
 **Done when**:
 
-- [ ] Exports `signInProfessor(email, password)`, `signOutProfessor()`, `subscribeAuthState(callback)`, and `mapAuthErrorToPtBr(errorCode)`
-- [ ] Maps Firebase Auth errors (`auth/invalid-credential`, `auth/wrong-password`, `auth/user-not-found`, `auth/too-many-requests`, `auth/network-request-failed`) to clear Portuguese messages
-- [ ] Integration tests in `src/services/__tests__/authService.test.ts` verify sign-in, sign-out, session persistence, and Portuguese error mapping
-- [ ] Gate check passes: `npm run test:run`
-- [ ] Test count: ≥ 31 cumulative tests pass
+- [x] Exports `signInProfessor(email, password)`, `signOutProfessor()`, `subscribeAuthState(callback)`, and `mapAuthErrorToPtBr(errorCode)`
+- [x] Maps Firebase Auth errors (`auth/invalid-credential`, `auth/wrong-password`, `auth/user-not-found`, `auth/too-many-requests`, `auth/network-request-failed`) to clear Portuguese messages
+- [x] Integration tests in `src/services/__tests__/authService.test.ts` verify sign-in, sign-out, session persistence, and Portuguese error mapping
+- [x] Gate check passes: `npm run test:run`
+- [x] Test count: ≥ 31 cumulative tests pass
 
 **Tests**: integration
 **Gate**: full
