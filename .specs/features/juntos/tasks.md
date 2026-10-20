@@ -289,12 +289,12 @@ T7 → T8 → T9 → T10
 
 **Done when**:
 
-- [ ] Displays all students with their `ID`, `Nome`, `Status` badge (`Ativo` vs `Inscrição Baixada`), `% Trim`, `% Ano`, and per-date attendance marks alongside lesson `Tema`, `Instrutor`, and class `% Presença`
-- [ ] Supports real-time filtering by status (`Todos`, `Ativos`, `Inscrição Baixada`) and case-insensitive search by `Nome` or `ID`
-- [ ] Allows editing class metadata (`nome`, `diaHorario`, `local`, `cátedras`), adding class comments, and finishing/reopening a class (`Encerrar turma` with closing comment disables `.xlsx` re-import button while `Encerrada`)
-- [ ] Component tests in `src/components/__tests__/TurmaDetailView.test.tsx` verify attendance matrix rendering, student filtering/search, metadata editing, and finishing a class
-- [ ] Gate check passes: `npm run test:run`
-- [ ] Test count: ≥ 52 cumulative tests pass
+- [x] Displays all students with their `ID`, `Nome`, `Status` badge (`Ativo` vs `Inscrição Baixada`), `% Trim`, `% Ano`, and per-date attendance marks alongside lesson `Tema`, `Instrutor`, and class `% Presença`
+- [x] Supports real-time filtering by status (`Todos`, `Ativos`, `Inscrição Baixada`) and case-insensitive search by `Nome` or `ID`
+- [x] Allows editing class metadata (`nome`, `diaHorario`, `local`, `cátedras`), adding class comments, and finishing/reopening a class (`Encerrar turma` with closing comment disables `.xlsx` re-import button while `Encerrada`)
+- [x] Component tests in `src/components/__tests__/TurmaDetailView.test.tsx` verify attendance matrix rendering, student filtering/search, metadata editing, and finishing a class
+- [x] Gate check passes: `npm run test:run`
+- [x] Test count: ≥ 52 cumulative tests pass
 
 **Tests**: integration
 **Gate**: full
