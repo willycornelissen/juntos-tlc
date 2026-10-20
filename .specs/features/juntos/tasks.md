@@ -9,7 +9,7 @@ Implement these tasks with the `tlc-spec-driven` skill: **activate it by name an
 ---
 
 **Design**: `.specs/features/juntos/design.md`
-**Status**: In Progress
+**Status**: Done
 
 ---
 
@@ -346,11 +346,11 @@ T7 → T8 → T9 → T10
 
 **Done when**:
 
-- [ ] `AlunoFichaDrawer` renders full student metrics, per-lesson table (date, course, theme, instructor, attendance code), chronological comments (distinguishing `sistema` drop/re-enrollment comments from `professor` notes), and validates non-empty professor comment submission
-- [ ] `src/App.tsx` integrates authentication gate (`LoginView`), `HeroHeader`, `TurmasDashboard`, `TurmaDetailView`, `ReimportModal`, and `AlunoFichaDrawer` (plus sample `Turma Pampulha (QUA)` quick-load button in demo mode)
-- [ ] End-to-end component integration tests in `src/components/__tests__/AlunoFichaDrawer.test.tsx` verify viewing a dropped student's automatic comment, adding a professor comment, rejecting blank comments, and full app navigation
-- [ ] Gate check passes: `npm run build && npm run test:run`
-- [ ] Test count: ≥ 62 cumulative tests pass
+- [x] `AlunoFichaDrawer` renders full student metrics, per-lesson table (date, course, theme, instructor, attendance code), chronological comments (distinguishing `sistema` drop/re-enrollment comments from `professor` notes), and validates non-empty professor comment submission
+- [x] `src/App.tsx` integrates authentication gate (`LoginView`), `HeroHeader`, `TurmasDashboard`, `TurmaDetailView`, `ReimportModal`, and `AlunoFichaDrawer` (plus sample `Turma Pampulha (QUA)` quick-load button in demo mode)
+- [x] End-to-end component integration tests in `src/components/__tests__/AlunoFichaDrawer.test.tsx` verify viewing a dropped student's automatic comment, adding a professor comment, rejecting blank comments, and full app navigation
+- [x] Gate check passes: `npm run build && npm run test:run`
+- [x] Test count: ≥ 62 cumulative tests pass
 
 **Tests**: integration
 **Gate**: build
