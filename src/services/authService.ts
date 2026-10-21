@@ -7,12 +7,29 @@ import {
   signOut,
   type Auth,
 } from 'firebase/auth';
-import { getFirestore, type Firestore } from 'firebase/firestore';
+import {
+  collection,
+  doc,
+  getDoc,
+  getDocs,
+  getFirestore,
+  setDoc,
+  updateDoc,
+  type Firestore,
+} from 'firebase/firestore';
 
 export interface AuthUser {
   uid: string;
   email: string;
   isDemo?: boolean;
+}
+
+export interface ProfessorRecord {
+  uid: string;
+  email: string;
+  status: 'ativo' | 'inativo';
+  createdAt: string;
+  deactivatedAt?: string;
 }
 
 export const ADMIN_EMAIL = 'willy.cornelissen@gmail.com';
@@ -25,6 +42,7 @@ export function canAddTeachers(user: AuthUser | null | undefined): boolean {
 }
 
 const LOCAL_AUTH_STORAGE_KEY = 'juntos:auth_user';
+const LOCAL_PROFESSORES_KEY = 'juntos:professores';
 
 export class AuthServiceError extends Error {
   readonly code: string;
@@ -140,6 +158,15 @@ export function mapAuthErrorToPtBr(error: unknown): string {
   ) {
     return 'Apenas o usuário willy.cornelissen@gmail.com pode adicionar novos professores.';
   }
+  if (
+    code.includes('auth/user-disabled') ||
+    code.includes('user-disabled')
+  ) {
+    return 'Acesso revogado pelo administrador.';
+  }
+  if (code.includes('auth/cannot-remove-admin')) {
+    return 'Não é possível remover o usuário administrador principal.';
+  }
   if (code.includes('auth/too-many-requests')) {
     return 'Muitas tentativas de acesso. Tente novamente em alguns instantes.';
   }
@@ -196,6 +223,37 @@ function buildDemoUid(email: string): string {
   return `demo-${slug || 'professor'}`;
 }
 
+function readLocalProfessores(): ProfessorRecord[] {
+  try {
+    const raw = localStorage.getItem(LOCAL_PROFESSORES_KEY);
+    if (raw) {
+      const parsed = JSON.parse(raw);
+      if (Array.isArray(parsed)) {
+        return parsed;
+      }
+    }
+  } catch {
+    // Fallback if storage fails
+  }
+  const defaultList: ProfessorRecord[] = [
+    {
+      uid: buildDemoUid(ADMIN_EMAIL),
+      email: ADMIN_EMAIL,
+      status: 'ativo',
+      createdAt: '2026-01-01T00:00:00.000Z',
+    },
+  ];
+  return defaultList;
+}
+
+function writeLocalProfessores(list: ProfessorRecord[]): void {
+  try {
+    localStorage.setItem(LOCAL_PROFESSORES_KEY, JSON.stringify(list));
+  } catch {
+    // Ignore quota errors
+  }
+}
+
 export function getCurrentAuthUser(): AuthUser | null {
   const fbAuth = getFirebaseAuth();
   if (fbAuth) {
@@ -244,16 +302,48 @@ export async function signInProfessor(
         trimmedEmail,
         rawPassword
       );
-      return {
+      const signedIn: AuthUser = {
         uid: cred.user.uid,
         email: cred.user.email ?? trimmedEmail,
       };
+
+      if (trimmedEmail.toLowerCase() !== ADMIN_EMAIL.toLowerCase()) {
+        const db = getFirestoreDb();
+        if (db) {
+          const profDoc = await getDoc(doc(db, 'professores', signedIn.uid));
+          if (profDoc.exists() && profDoc.data().status === 'inativo') {
+            await signOut(fbAuth);
+            throw new AuthServiceError(
+              'auth/user-disabled',
+              mapAuthErrorToPtBr('auth/user-disabled')
+            );
+          }
+        }
+      }
+
+      return signedIn;
     } catch (err) {
+      if (err instanceof AuthServiceError) {
+        throw err;
+      }
       const code =
         err && typeof err === 'object' && 'code' in err
           ? String((err as { code?: unknown }).code)
           : 'auth/invalid-credential';
       throw new AuthServiceError(code, mapAuthErrorToPtBr(err));
+    }
+  }
+
+  if (trimmedEmail.toLowerCase() !== ADMIN_EMAIL.toLowerCase()) {
+    const list = readLocalProfessores();
+    const found = list.find(
+      (p) => p.email.toLowerCase() === trimmedEmail.toLowerCase()
+    );
+    if (found && found.status === 'inativo') {
+      throw new AuthServiceError(
+        'auth/user-disabled',
+        mapAuthErrorToPtBr('auth/user-disabled')
+      );
     }
   }
 
@@ -349,10 +439,22 @@ export async function registerProfessor(
         rawPassword
       );
       await signOut(tempAuth);
-      return {
+      const newUser: AuthUser = {
         uid: cred.user.uid,
         email: cred.user.email ?? trimmedEmail,
       };
+
+      const db = getFirestoreDb();
+      if (db) {
+        await setDoc(doc(db, 'professores', newUser.uid), {
+          uid: newUser.uid,
+          email: newUser.email,
+          status: 'ativo',
+          createdAt: new Date().toISOString(),
+        });
+      }
+
+      return newUser;
     } catch (err) {
       const code =
         err && typeof err === 'object' && 'code' in err
@@ -369,5 +471,108 @@ export async function registerProfessor(
     email: trimmedEmail,
     isDemo: true,
   };
+
+  const list = readLocalProfessores();
+  const existingIdx = list.findIndex(
+    (p) => p.email.toLowerCase() === trimmedEmail.toLowerCase()
+  );
+  const record: ProfessorRecord = {
+    uid: newUser.uid,
+    email: newUser.email,
+    status: 'ativo',
+    createdAt: new Date().toISOString(),
+  };
+  if (existingIdx >= 0) {
+    list[existingIdx] = record;
+  } else {
+    list.push(record);
+  }
+  writeLocalProfessores(list);
+
   return newUser;
+}
+
+export async function listProfessores(
+  adminUser: AuthUser | null | undefined
+): Promise<ProfessorRecord[]> {
+  if (!canAddTeachers(adminUser)) {
+    throw new AuthServiceError(
+      'auth/permission-denied',
+      mapAuthErrorToPtBr('auth/permission-denied')
+    );
+  }
+
+  const db = getFirestoreDb();
+  if (db) {
+    const snap = await getDocs(collection(db, 'professores'));
+    const items: ProfessorRecord[] = [];
+    snap.forEach((d) => {
+      items.push(d.data() as ProfessorRecord);
+    });
+    if (!items.some((p) => p.email.toLowerCase() === ADMIN_EMAIL.toLowerCase())) {
+      items.unshift({
+        uid: adminUser?.uid ?? buildDemoUid(ADMIN_EMAIL),
+        email: ADMIN_EMAIL,
+        status: 'ativo',
+        createdAt: '2026-01-01T00:00:00.000Z',
+      });
+    }
+    return items;
+  }
+
+  return readLocalProfessores();
+}
+
+export async function removeProfessor(
+  adminUser: AuthUser | null | undefined,
+  targetUid: string
+): Promise<void> {
+  if (!canAddTeachers(adminUser)) {
+    throw new AuthServiceError(
+      'auth/permission-denied',
+      mapAuthErrorToPtBr('auth/permission-denied')
+    );
+  }
+
+  if (targetUid === adminUser?.uid || targetUid === buildDemoUid(ADMIN_EMAIL)) {
+    throw new AuthServiceError(
+      'auth/cannot-remove-admin',
+      mapAuthErrorToPtBr('auth/cannot-remove-admin')
+    );
+  }
+
+  const db = getFirestoreDb();
+  if (db) {
+    const profRef = doc(db, 'professores', targetUid);
+    const snap = await getDoc(profRef);
+    if (snap.exists()) {
+      const data = snap.data() as ProfessorRecord;
+      if (data.email?.toLowerCase() === ADMIN_EMAIL.toLowerCase()) {
+        throw new AuthServiceError(
+          'auth/cannot-remove-admin',
+          mapAuthErrorToPtBr('auth/cannot-remove-admin')
+        );
+      }
+      await updateDoc(profRef, {
+        status: 'inativo',
+        deactivatedAt: new Date().toISOString(),
+      });
+    }
+    return;
+  }
+
+  const list = readLocalProfessores();
+  const target = list.find((p) => p.uid === targetUid);
+  if (target && target.email.toLowerCase() === ADMIN_EMAIL.toLowerCase()) {
+    throw new AuthServiceError(
+      'auth/cannot-remove-admin',
+      mapAuthErrorToPtBr('auth/cannot-remove-admin')
+    );
+  }
+  const updated = list.map((p) =>
+    p.uid === targetUid
+      ? { ...p, status: 'inativo' as const, deactivatedAt: new Date().toISOString() }
+      : p
+  );
+  writeLocalProfessores(updated);
 }

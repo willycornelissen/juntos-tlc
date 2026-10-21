@@ -8,7 +8,7 @@ import * as authService from '../../services/authService';
 
 describe('components/AddUserModal', () => {
   const adminUser: authService.AuthUser = {
-    uid: 'admin-willy',
+    uid: 'demo-willy-cornelissen-gmail-com',
     email: 'willy.cornelissen@gmail.com',
   };
 
@@ -17,26 +17,37 @@ describe('components/AddUserModal', () => {
     email: 'outro@professor.org',
   };
 
-  it('renders form inputs for willy.cornelissen@gmail.com', () => {
+  beforeEach(() => {
+    localStorage.clear();
+  });
+
+  it('renders form inputs and teachers list for willy.cornelissen@gmail.com', async () => {
     render(<AddUserModal adminUser={adminUser} onClose={vi.fn()} />);
 
     expect(
-      screen.getByRole('heading', { name: /adicionar novo professor/i })
+      screen.getByRole('heading', { name: /gerenciar professores/i })
     ).toBeInTheDocument();
     expect(
       screen.getByLabelText(/e-mail ou usuário do professor/i)
     ).toBeInTheDocument();
-    expect(screen.getByLabelText(/senha/i)).toBeInTheDocument();
+    expect(
+      screen.getByLabelText(/senha temporária/i)
+    ).toBeInTheDocument();
     expect(
       screen.getByRole('button', { name: /adicionar professor/i })
     ).toBeInTheDocument();
+
+    await waitFor(() => {
+      expect(screen.getByText('willy.cornelissen@gmail.com')).toBeInTheDocument();
+      expect(screen.getByText('Administrador')).toBeInTheDocument();
+    });
   });
 
   it('shows permission warning if logged user is not willy.cornelissen@gmail.com', () => {
     render(<AddUserModal adminUser={otherUser} onClose={vi.fn()} />);
 
     expect(screen.getByRole('alert')).toHaveTextContent(
-      'Apenas o usuário willy.cornelissen@gmail.com tem permissão para adicionar novos professores.'
+      'Apenas o usuário willy.cornelissen@gmail.com tem permissão para gerenciar professores.'
     );
     expect(
       screen.queryByLabelText(/e-mail ou usuário do professor/i)
@@ -49,7 +60,7 @@ describe('components/AddUserModal', () => {
     fireEvent.change(screen.getByLabelText(/e-mail ou usuário do professor/i), {
       target: { value: 'novo@escola.org' },
     });
-    fireEvent.change(screen.getByLabelText(/senha/i), {
+    fireEvent.change(screen.getByLabelText(/senha temporária/i), {
       target: { value: '123' },
     });
 
@@ -64,7 +75,7 @@ describe('components/AddUserModal', () => {
     });
   });
 
-  it('submits valid credentials, registers the professor, and displays success status', async () => {
+  it('submits valid credentials, registers the professor, and shows in list', async () => {
     const onUserAdded = vi.fn();
     const onClose = vi.fn();
 
@@ -79,7 +90,7 @@ describe('components/AddUserModal', () => {
     fireEvent.change(screen.getByLabelText(/e-mail ou usuário do professor/i), {
       target: { value: 'maria.professora@escola.org' },
     });
-    fireEvent.change(screen.getByLabelText(/senha/i), {
+    fireEvent.change(screen.getByLabelText(/senha temporária/i), {
       target: { value: 'senhaForte123' },
     });
 
@@ -99,9 +110,40 @@ describe('components/AddUserModal', () => {
       })
     );
 
-    // After success, clicking Concluir triggers onClose
-    fireEvent.click(screen.getByRole('button', { name: /concluir/i }));
-    expect(onClose).toHaveBeenCalled();
+    // Shows in the list
+    expect(screen.getByText('maria.professora@escola.org')).toBeInTheDocument();
+  });
+
+  it('allows revoking access with inline confirmation', async () => {
+    // Pre-populate with another teacher
+    await authService.registerProfessor(
+      adminUser,
+      'pedro.prof@escola.org',
+      'senha123456'
+    );
+
+    render(<AddUserModal adminUser={adminUser} onClose={vi.fn()} />);
+
+    await waitFor(() => {
+      expect(screen.getByText('pedro.prof@escola.org')).toBeInTheDocument();
+    });
+
+    const removeBtn = screen.getByRole('button', {
+      name: /remover professor pedro\.prof@escola\.org/i,
+    });
+    fireEvent.click(removeBtn);
+
+    expect(screen.getByText('Confirmar remoção?')).toBeInTheDocument();
+    const confirmBtn = screen.getByRole('button', { name: /sim, remover/i });
+    fireEvent.click(confirmBtn);
+
+    await waitFor(() => {
+      expect(screen.getByRole('status')).toHaveTextContent(
+        'Acesso do professor "pedro.prof@escola.org" revogado com sucesso.'
+      );
+    });
+
+    expect(screen.getByText('Acesso Revogado')).toBeInTheDocument();
   });
 
   it('closes dialog when clicking Fechar button in header', () => {
@@ -118,10 +160,10 @@ describe('App integration for user management button', () => {
     localStorage.clear();
   });
 
-  it('displays "Adicionar Usuário" button beside "Sair" strictly when willy.cornelissen@gmail.com is logged in', async () => {
+  it('displays "Gerenciar Professores" button beside "Sair" strictly when willy.cornelissen@gmail.com is logged in', async () => {
     vi.spyOn(authService, 'subscribeAuthState').mockImplementation((cb) => {
       cb({
-        uid: 'willy-uid',
+        uid: 'demo-willy-cornelissen-gmail-com',
         email: 'willy.cornelissen@gmail.com',
       });
       return () => {};
@@ -129,26 +171,26 @@ describe('App integration for user management button', () => {
 
     render(<App />);
 
-    const addUserBtn = screen.getByRole('button', {
-      name: /adicionar usuário/i,
+    const manageBtn = screen.getByRole('button', {
+      name: /gerenciar professores/i,
     });
-    expect(addUserBtn).toBeInTheDocument();
+    expect(manageBtn).toBeInTheDocument();
     expect(screen.getByRole('button', { name: /sair/i })).toBeInTheDocument();
 
     // Clicking the button opens the dialog
-    fireEvent.click(addUserBtn);
+    fireEvent.click(manageBtn);
     expect(
-      screen.getByRole('heading', { name: /adicionar novo professor/i })
+      screen.getByRole('heading', { name: /gerenciar professores/i })
     ).toBeInTheDocument();
 
     // Closing the dialog removes it
     fireEvent.click(screen.getByRole('button', { name: /fechar diálogo/i }));
     expect(
-      screen.queryByRole('heading', { name: /adicionar novo professor/i })
+      screen.queryByRole('heading', { name: /gerenciar professores/i })
     ).not.toBeInTheDocument();
   });
 
-  it('does NOT display "Adicionar Usuário" button when any other teacher is logged in', () => {
+  it('does NOT display "Gerenciar Professores" button when any other teacher is logged in', () => {
     vi.spyOn(authService, 'subscribeAuthState').mockImplementation((cb) => {
       cb({
         uid: 'other-uid',
@@ -161,7 +203,7 @@ describe('App integration for user management button', () => {
 
     expect(screen.getByRole('button', { name: /sair/i })).toBeInTheDocument();
     expect(
-      screen.queryByRole('button', { name: /adicionar usuário/i })
+      screen.queryByRole('button', { name: /gerenciar professores/i })
     ).not.toBeInTheDocument();
   });
 });

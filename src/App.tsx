@@ -264,7 +264,7 @@ export function App(): React.ReactElement {
                 className="btn btn-secondary"
                 onClick={() => setIsAddUserOpen(true)}
               >
-                Adicionar Usuário
+                Gerenciar Professores
               </button>
             )}
             <button

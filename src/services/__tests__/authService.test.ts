@@ -3,8 +3,10 @@ import {
   canAddTeachers,
   getCurrentAuthUser,
   isFirebaseConfigured,
+  listProfessores,
   mapAuthErrorToPtBr,
   registerProfessor,
+  removeProfessor,
   signInProfessor,
   signOutProfessor,
   subscribeAuthState,
@@ -156,5 +158,58 @@ describe('services/authService', () => {
     );
     expect(created.email).toBe('novo.professor@escola.org');
     expect(created.uid).toBe('demo-novo-professor-escola-org');
+  });
+
+  it('lists registered professors and allows admin to revoke access but protects admin account', async () => {
+    const adminUser: AuthUser = {
+      uid: 'demo-willy-cornelissen-gmail-com',
+      email: 'willy.cornelissen@gmail.com',
+    };
+    const unauthorizedUser: AuthUser = {
+      uid: 'user-outro',
+      email: 'outro@escola.org',
+    };
+
+    // Cannot list if not admin
+    await expect(listProfessores(unauthorizedUser)).rejects.toThrow(
+      'Apenas o usuário willy.cornelissen@gmail.com pode adicionar novos professores.'
+    );
+
+    // Initial list contains admin
+    const initialList = await listProfessores(adminUser);
+    expect(initialList.some((p) => p.email === 'willy.cornelissen@gmail.com')).toBe(
+      true
+    );
+
+    // Register a teacher
+    const teacher = await registerProfessor(
+      adminUser,
+      'maria.prof@escola.org',
+      'senha123456'
+    );
+
+    // Teacher can sign in initially
+    const signedIn = await signInProfessor('maria.prof@escola.org', 'senha123456');
+    expect(signedIn.email).toBe('maria.prof@escola.org');
+    await signOutProfessor();
+
+    // Prevent removing admin
+    await expect(
+      removeProfessor(adminUser, adminUser.uid)
+    ).rejects.toThrow(
+      'Não é possível remover o usuário administrador principal.'
+    );
+
+    // Remove (revoke) teacher access
+    await removeProfessor(adminUser, teacher.uid);
+
+    const updatedList = await listProfessores(adminUser);
+    const maria = updatedList.find((p) => p.uid === teacher.uid);
+    expect(maria?.status).toBe('inativo');
+
+    // Attempting to sign in with revoked access is blocked
+    await expect(
+      signInProfessor('maria.prof@escola.org', 'senha123456')
+    ).rejects.toThrow('Acesso revogado pelo administrador.');
   });
 });
