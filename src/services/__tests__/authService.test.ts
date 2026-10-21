@@ -1,8 +1,10 @@
 import { describe, it, expect, beforeEach } from 'vitest';
 import {
+  canAddTeachers,
   getCurrentAuthUser,
   isFirebaseConfigured,
   mapAuthErrorToPtBr,
+  registerProfessor,
   signInProfessor,
   signOutProfessor,
   subscribeAuthState,
@@ -105,5 +107,54 @@ describe('services/authService', () => {
     expect(observed[observed.length - 1]).toBeNull();
 
     unsubscribe();
+  });
+
+  it('restricts teacher creation permission strictly to willy.cornelissen@gmail.com', () => {
+    expect(canAddTeachers(null)).toBe(false);
+    expect(canAddTeachers(undefined)).toBe(false);
+    expect(canAddTeachers({ uid: '1', email: 'outro@gmail.com' })).toBe(false);
+    expect(
+      canAddTeachers({ uid: '2', email: 'willy.cornelissen@gmail.com' })
+    ).toBe(true);
+    expect(
+      canAddTeachers({ uid: '2', email: ' WILLY.CORNELISSEN@GMAIL.COM ' })
+    ).toBe(true);
+  });
+
+  it('allows willy.cornelissen@gmail.com to register a new professor and rejects unauthorized users', async () => {
+    const adminUser: AuthUser = {
+      uid: 'admin-1',
+      email: 'willy.cornelissen@gmail.com',
+    };
+    const unauthorizedUser: AuthUser = {
+      uid: 'user-2',
+      email: 'professor@outro.com',
+    };
+
+    // Unauthorized attempt
+    await expect(
+      registerProfessor(unauthorizedUser, 'novo@prof.org', 'senha123')
+    ).rejects.toThrow(
+      'Apenas o usuário willy.cornelissen@gmail.com pode adicionar novos professores.'
+    );
+
+    // Invalid email attempt by admin
+    await expect(
+      registerProfessor(adminUser, 'email-invalido', 'senha123')
+    ).rejects.toThrow('Informe um endereço de e-mail válido.');
+
+    // Short password attempt by admin
+    await expect(
+      registerProfessor(adminUser, 'novo@prof.org', '123')
+    ).rejects.toThrow('A senha deve conter no mínimo 6 caracteres.');
+
+    // Valid registration by admin
+    const created = await registerProfessor(
+      adminUser,
+      'novo.professor@escola.org',
+      'senhaForte2026'
+    );
+    expect(created.email).toBe('novo.professor@escola.org');
+    expect(created.uid).toBe('demo-novo-professor-escola-org');
   });
 });

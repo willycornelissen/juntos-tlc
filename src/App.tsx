@@ -11,6 +11,7 @@ import type {
 } from './domain/types';
 import {
   type AuthUser,
+  canAddTeachers,
   signInProfessor,
   signOutProfessor,
   subscribeAuthState,
@@ -30,6 +31,7 @@ import { LoginView, TurmasDashboard } from './components/TurmasDashboard';
 import { TurmaDetailView } from './components/TurmaDetailView';
 import { ReimportModal } from './components/ReimportModal';
 import { AlunoFichaDrawer } from './components/AlunoFichaDrawer';
+import { AddUserModal } from './components/AddUserModal';
 
 const SAMPLE_PAMPULHA_CHAMADA: ParsedChamada = {
   cidadePlanilha: 'Belo Horizonte',
@@ -95,6 +97,7 @@ export function App(): React.ReactElement {
     null
   );
   const [isReimportOpen, setIsReimportOpen] = useState(false);
+  const [isAddUserOpen, setIsAddUserOpen] = useState(false);
 
   const refreshTurmas = useCallback(async (uid: string) => {
     const loaded = await listTurmas(uid);
@@ -119,6 +122,7 @@ export function App(): React.ReactElement {
         setActiveTurma(null);
         setActiveAlunos([]);
         setSelectedStudentKey(null);
+        setIsAddUserOpen(false);
       } else {
         void refreshTurmas(authUser.uid);
       }
@@ -254,6 +258,15 @@ export function App(): React.ReactElement {
           </div>
           <div className="hero-user">
             <span>{user.email}</span>
+            {canAddTeachers(user) && (
+              <button
+                type="button"
+                className="btn btn-secondary"
+                onClick={() => setIsAddUserOpen(true)}
+              >
+                Adicionar Usuário
+              </button>
+            )}
             <button
               type="button"
               className="btn btn-secondary"
@@ -307,6 +320,13 @@ export function App(): React.ReactElement {
             onClose={() => setSelectedStudentKey(null)}
             onAddComment={handleAddAlunoComment}
             onInactivate={handleInactivateAluno}
+          />
+        )}
+
+        {isAddUserOpen && (
+          <AddUserModal
+            adminUser={user}
+            onClose={() => setIsAddUserOpen(false)}
           />
         )}
       </main>

@@ -1,5 +1,6 @@
-import { initializeApp, getApps, type FirebaseApp } from 'firebase/app';
+import { initializeApp, getApps, deleteApp, type FirebaseApp } from 'firebase/app';
 import {
+  createUserWithEmailAndPassword,
   getAuth,
   onAuthStateChanged,
   signInWithEmailAndPassword,
@@ -12,6 +13,15 @@ export interface AuthUser {
   uid: string;
   email: string;
   isDemo?: boolean;
+}
+
+export const ADMIN_EMAIL = 'willy.cornelissen@gmail.com';
+
+export function canAddTeachers(user: AuthUser | null | undefined): boolean {
+  if (!user || typeof user.email !== 'string') {
+    return false;
+  }
+  return user.email.trim().toLowerCase() === ADMIN_EMAIL.toLowerCase();
 }
 
 const LOCAL_AUTH_STORAGE_KEY = 'juntos:auth_user';
@@ -117,6 +127,18 @@ export function mapAuthErrorToPtBr(error: unknown): string {
   }
   if (code.includes('auth/invalid-email')) {
     return 'Informe um endereço de e-mail válido.';
+  }
+  if (code.includes('auth/email-already-in-use')) {
+    return 'Este e-mail já está cadastrado no sistema.';
+  }
+  if (code.includes('auth/weak-password')) {
+    return 'A senha deve conter no mínimo 6 caracteres.';
+  }
+  if (
+    code.includes('auth/permission-denied') ||
+    code.includes('permission-denied')
+  ) {
+    return 'Apenas o usuário willy.cornelissen@gmail.com pode adicionar novos professores.';
   }
   if (code.includes('auth/too-many-requests')) {
     return 'Muitas tentativas de acesso. Tente novamente em alguns instantes.';
@@ -275,4 +297,77 @@ export function subscribeAuthState(
   return () => {
     localListeners.delete(listener);
   };
+}
+
+export async function registerProfessor(
+  adminUser: AuthUser | null | undefined,
+  email: string,
+  password: string
+): Promise<AuthUser> {
+  if (!canAddTeachers(adminUser)) {
+    throw new AuthServiceError(
+      'auth/permission-denied',
+      mapAuthErrorToPtBr('auth/permission-denied')
+    );
+  }
+
+  const trimmedEmail = (email ?? '').trim();
+  if (!trimmedEmail || !trimmedEmail.includes('@')) {
+    throw new AuthServiceError(
+      'auth/invalid-email',
+      mapAuthErrorToPtBr('auth/invalid-email')
+    );
+  }
+
+  const rawPassword = password ?? '';
+  if (rawPassword.length < 6) {
+    throw new AuthServiceError(
+      'auth/weak-password',
+      mapAuthErrorToPtBr('auth/weak-password')
+    );
+  }
+
+  if (isFirebaseConfigured()) {
+    const tempAppName = `AddProfessor-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`;
+    const tempApp = initializeApp(
+      {
+        apiKey: getEnvVar('VITE_FIREBASE_API_KEY'),
+        authDomain: getEnvVar('VITE_FIREBASE_AUTH_DOMAIN'),
+        projectId: getEnvVar('VITE_FIREBASE_PROJECT_ID'),
+        storageBucket: getEnvVar('VITE_FIREBASE_STORAGE_BUCKET'),
+        messagingSenderId: getEnvVar('VITE_FIREBASE_MESSAGING_SENDER_ID'),
+        appId: getEnvVar('VITE_FIREBASE_APP_ID'),
+      },
+      tempAppName
+    );
+
+    try {
+      const tempAuth = getAuth(tempApp);
+      const cred = await createUserWithEmailAndPassword(
+        tempAuth,
+        trimmedEmail,
+        rawPassword
+      );
+      await signOut(tempAuth);
+      return {
+        uid: cred.user.uid,
+        email: cred.user.email ?? trimmedEmail,
+      };
+    } catch (err) {
+      const code =
+        err && typeof err === 'object' && 'code' in err
+          ? String((err as { code?: unknown }).code)
+          : 'auth/unknown-error';
+      throw new AuthServiceError(code, mapAuthErrorToPtBr(err));
+    } finally {
+      await deleteApp(tempApp).catch(() => {});
+    }
+  }
+
+  const newUser: AuthUser = {
+    uid: buildDemoUid(trimmedEmail),
+    email: trimmedEmail,
+    isDemo: true,
+  };
+  return newUser;
 }
