@@ -66,7 +66,6 @@ export function LoginView({ onSignIn }: LoginViewProps): React.ReactElement {
             className="login-logo"
           />
         </div>
-        <h1>Juntos.</h1>
         <p className="subtitle">
           Acompanhamento de turmas, chamadas e fichas particulares de alunos.
         </p>
