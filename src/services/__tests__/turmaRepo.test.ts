@@ -6,6 +6,7 @@ import {
   chunkArray,
   createTurmaFromImport,
   getTurmaWithAlunos,
+  inactivateAluno,
   listTurmas,
   resetLocalStoreForTests,
   setTurmaStatus,
@@ -382,5 +383,65 @@ describe('services/turmaRepo', () => {
     expect(lucas.comentarios).toHaveLength(2);
     expect(lucas.comentarios[0].authorType).toBe('sistema');
     expect(lucas.comentarios[1]).toEqual(profNoteOnDropped);
+  });
+
+  it('inactivates an active student manually, updates enrollment status to Inscrição Baixada, adds system comment, and adjusts turma counts', async () => {
+    const parsed = makeSampleParsedChamada();
+    const { turma } = await createTurmaFromImport(
+      'uid-prof-1',
+      {
+        nome: 'Turma Pampulha (QUA)',
+        diaHorario: 'Quarta-feira, 19h30',
+        local: 'Pampulha',
+        catedras: ['Filosofia para Viver'],
+      },
+      parsed,
+      '2026-10-14T22:00:00.000Z'
+    );
+
+    expect(turma.activeStudentsCount).toBe(2);
+    expect(turma.droppedStudentsCount).toBe(0);
+
+    const result = await inactivateAluno(
+      'uid-prof-1',
+      turma.id,
+      '14820',
+      '2026-10-21T15:00:00.000Z'
+    );
+
+    expect(result.aluno.status).toBe('Inscrição Baixada');
+    expect(result.aluno.droppedAt).toBe('2026-10-21T15:00:00.000Z');
+    expect(result.aluno.comentarios).toHaveLength(1);
+    expect(result.aluno.comentarios[0]).toMatchObject({
+      authorType: 'sistema',
+      text: 'Inscrição baixada manualmente em 21/10/2026.',
+      createdAt: '2026-10-21T15:00:00.000Z',
+    });
+    expect(result.turma.activeStudentsCount).toBe(1);
+    expect(result.turma.droppedStudentsCount).toBe(1);
+
+    const fetched = await getTurmaWithAlunos('uid-prof-1', turma.id);
+    expect(fetched.turma.activeStudentsCount).toBe(1);
+    expect(fetched.turma.droppedStudentsCount).toBe(1);
+    const claudia = fetched.alunos.find((a) => a.studentKey === '14820')!;
+    expect(claudia.status).toBe('Inscrição Baixada');
+  });
+
+  it('throws error when trying to inactivate non-existent student', async () => {
+    const parsed = makeSampleParsedChamada();
+    const { turma } = await createTurmaFromImport(
+      'uid-prof-1',
+      {
+        nome: 'Turma Pampulha (QUA)',
+        diaHorario: 'Quarta-feira, 19h30',
+        local: 'Pampulha',
+        catedras: ['Filosofia para Viver'],
+      },
+      parsed
+    );
+
+    await expect(
+      inactivateAluno('uid-prof-1', turma.id, '99999')
+    ).rejects.toThrow('Aluno não encontrado na turma.');
   });
 });

@@ -8,6 +8,7 @@ import {
   type Firestore,
 } from 'firebase/firestore';
 import { normalizeStudentKey } from '../domain/chamadaParser';
+import { formatDatePtBr } from '../domain/syncEngine';
 import {
   type AlunoRecord,
   type CommentEntry,
@@ -508,3 +509,77 @@ export async function addAlunoComment(
   writeUserStore(uid, store);
   return entry;
 }
+
+export async function inactivateAluno(
+  uid: string,
+  turmaId: string,
+  studentKey: string,
+  nowIso = new Date().toISOString()
+): Promise<{ turma: Turma; aluno: AlunoRecord }> {
+  const { turma: existingTurma, alunos: existingAlunos } =
+    await getTurmaWithAlunos(uid, turmaId);
+
+  const existingAluno = existingAlunos.find((a) => a.studentKey === studentKey);
+  if (!existingAluno) {
+    throw new Error('Aluno não encontrado na turma.');
+  }
+
+  if (existingAluno.status === 'Inscrição Baixada') {
+    return { turma: existingTurma, aluno: existingAluno };
+  }
+
+  const dropComment: CommentEntry = {
+    id: generateId('aluno-drop'),
+    authorType: 'sistema',
+    text: `Inscrição baixada manualmente em ${formatDatePtBr(nowIso)}.`,
+    createdAt: nowIso,
+  };
+
+  const updatedAluno: AlunoRecord = {
+    ...existingAluno,
+    status: 'Inscrição Baixada',
+    droppedAt: nowIso,
+    comentarios: [...existingAluno.comentarios, dropComment],
+    updatedAt: nowIso,
+  };
+
+  const updatedAlunos = existingAlunos.map((a) =>
+    a.studentKey === studentKey ? updatedAluno : a
+  );
+
+  const activeStudentsCount = updatedAlunos.filter(
+    (a) => a.status === 'Ativo'
+  ).length;
+  const droppedStudentsCount = updatedAlunos.filter(
+    (a) => a.status === 'Inscrição Baixada'
+  ).length;
+
+  const updatedTurma: Turma = {
+    ...existingTurma,
+    activeStudentsCount,
+    droppedStudentsCount,
+    updatedAt: nowIso,
+  };
+
+  const db = getFirestoreDb();
+  if (db) {
+    const batch = writeBatch(db);
+    batch.set(doc(db, 'users', uid, 'turmas', turmaId), updatedTurma);
+    batch.set(
+      doc(db, 'users', uid, 'turmas', turmaId, 'alunos', studentKey),
+      updatedAluno
+    );
+    await batch.commit();
+    return { turma: updatedTurma, aluno: updatedAluno };
+  }
+
+  const store = readUserStore(uid);
+  if (store.turmas[turmaId]) {
+    store.turmas[turmaId].turma = updatedTurma;
+    store.turmas[turmaId].alunos[studentKey] = updatedAluno;
+    writeUserStore(uid, store);
+  }
+
+  return { turma: updatedTurma, aluno: updatedAluno };
+}
+

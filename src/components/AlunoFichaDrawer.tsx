@@ -13,6 +13,7 @@ export interface AlunoFichaDrawerProps {
   lessons: LessonColumn[];
   onClose: () => void;
   onAddComment: (studentKey: string, text: string) => Promise<void>;
+  onInactivate?: (studentKey: string) => Promise<void>;
 }
 
 export function AlunoFichaDrawer({
@@ -20,10 +21,13 @@ export function AlunoFichaDrawer({
   lessons,
   onClose,
   onAddComment,
+  onInactivate,
 }: AlunoFichaDrawerProps): React.ReactElement {
   const [commentText, setCommentText] = useState('');
   const [commentError, setCommentError] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
+  const [inactivating, setInactivating] = useState(false);
+  const [inactivateError, setInactivateError] = useState<string | null>(null);
 
   const metrics = useMemo(
     () => computeStudentMetrics(lessons, aluno.presencas),
@@ -42,6 +46,23 @@ export function AlunoFichaDrawer({
   }, [aluno.comentarios]);
 
   const isDropped = aluno.status === 'Inscrição Baixada';
+
+  const handleInactivate = async () => {
+    if (isDropped || inactivating || !onInactivate) {
+      return;
+    }
+    setInactivating(true);
+    setInactivateError(null);
+    try {
+      await onInactivate(aluno.studentKey);
+    } catch (err) {
+      setInactivateError(
+        err instanceof Error ? err.message : 'Erro ao inativar aluno.'
+      );
+    } finally {
+      setInactivating(false);
+    }
+  };
 
   const handleSubmitComment = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -105,6 +126,15 @@ export function AlunoFichaDrawer({
             </span>
             <button
               type="button"
+              className="btn btn-danger"
+              onClick={() => void handleInactivate()}
+              disabled={isDropped || inactivating}
+              title={isDropped ? 'Aluno já está inativo' : undefined}
+            >
+              {inactivating ? 'Inativando...' : 'Inativar'}
+            </button>
+            <button
+              type="button"
               className="btn btn-secondary"
               onClick={onClose}
             >
@@ -112,6 +142,12 @@ export function AlunoFichaDrawer({
             </button>
           </div>
         </div>
+
+        {inactivateError && (
+          <div className="warning" role="alert" style={{ marginBottom: '1rem' }}>
+            {inactivateError}
+          </div>
+        )}
 
         {/* Attendance Summary Cards */}
         <div

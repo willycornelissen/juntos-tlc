@@ -1,6 +1,6 @@
 import React from 'react';
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { render, screen, fireEvent, waitFor } from '@testing-library/react';
+import { render, screen, fireEvent, waitFor, within } from '@testing-library/react';
 import '@testing-library/jest-dom/vitest';
 import * as XLSX from 'xlsx';
 import { AlunoFichaDrawer } from '../AlunoFichaDrawer';
@@ -346,5 +346,112 @@ describe('components/AlunoFichaDrawer & App integration', () => {
       screen.getByRole('tab', { name: /turmas encerradas \(1\)/i })
     );
     expect(screen.getByText('Turma Pampulha (QUA)')).toBeInTheDocument();
+  });
+
+  it('renders Inativar button next to Fechar, enabled for active student and disabled for Inscrição Baixada student', () => {
+    const activeAluno: AlunoRecord = {
+      ...droppedAluno,
+      status: 'Ativo',
+      comentarios: [],
+    };
+
+    const { rerender } = render(
+      <AlunoFichaDrawer
+        aluno={activeAluno}
+        lessons={sampleLessons}
+        onClose={vi.fn()}
+        onAddComment={vi.fn()}
+        onInactivate={vi.fn()}
+      />
+    );
+
+    const inativarBtn = screen.getByRole('button', { name: 'Inativar' });
+    expect(inativarBtn).toBeInTheDocument();
+    expect(inativarBtn).not.toBeDisabled();
+    expect(screen.getByRole('button', { name: 'Fechar' })).toBeInTheDocument();
+
+    rerender(
+      <AlunoFichaDrawer
+        aluno={droppedAluno}
+        lessons={sampleLessons}
+        onClose={vi.fn()}
+        onAddComment={vi.fn()}
+        onInactivate={vi.fn()}
+      />
+    );
+
+    expect(screen.getByRole('button', { name: 'Inativar' })).toBeDisabled();
+  });
+
+  it('inactivates an active student from the ficha drawer in App, updating status to Inscrição Baixada and adding manual drop comment', async () => {
+    render(<App />);
+
+    fireEvent.change(screen.getByLabelText(/e-mail do professor/i), {
+      target: { value: 'prof-inativar@juntos.dev.br' },
+    });
+    fireEvent.change(screen.getByLabelText(/senha/i), {
+      target: { value: 'senha123' },
+    });
+    fireEvent.click(screen.getByRole('button', { name: /entrar/i }));
+
+    await waitFor(() => {
+      expect(
+        screen.getByRole('button', {
+          name: /carregar turma de exemplo \(pampulha qua\)/i,
+        })
+      ).toBeInTheDocument();
+    });
+
+    fireEvent.click(
+      screen.getByRole('button', {
+        name: /carregar turma de exemplo \(pampulha qua\)/i,
+      })
+    );
+
+    await waitFor(() => {
+      expect(
+        screen.getByText('Claudia Marcia Marques (Sala Pampulha)')
+      ).toBeInTheDocument();
+    });
+
+    // Open Claudia's ficha
+    fireEvent.click(
+      screen.getByText('Claudia Marcia Marques (Sala Pampulha)')
+    );
+
+    await waitFor(() => {
+      expect(screen.getByText(/ficha particular · id: 14820/i)).toBeInTheDocument();
+    });
+
+    // Verify initial Ativo badge inside drawer
+    const drawer = screen.getByRole('dialog');
+    expect(within(drawer).getByText('Ativo')).toBeInTheDocument();
+
+    // Click Inativar button next to Fechar
+    const inativarBtn = within(drawer).getByRole('button', { name: 'Inativar' });
+    expect(inativarBtn).not.toBeDisabled();
+    fireEvent.click(inativarBtn);
+
+    // Verify status changed to Inscrição Baixada and comment is added
+    await waitFor(() => {
+      expect(within(drawer).getByText('Inscrição Baixada')).toBeInTheDocument();
+    });
+    expect(
+      within(drawer).getByText(/inscrição baixada manualmente em/i)
+    ).toBeInTheDocument();
+    expect(within(drawer).getByRole('button', { name: 'Inativar' })).toBeDisabled();
+
+    // Close drawer and verify class view counts and student status
+    fireEvent.click(within(drawer).getByRole('button', { name: /fechar/i }));
+
+    await waitFor(() => {
+      expect(
+        screen.queryByRole('dialog')
+      ).not.toBeInTheDocument();
+    });
+
+    expect(
+      screen.getByText(/2 ativos · 1 inscrição baixada/i)
+    ).toBeInTheDocument();
   });
 });

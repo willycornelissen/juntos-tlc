@@ -21,6 +21,7 @@ import {
   applyReimportPlan,
   createTurmaFromImport,
   getTurmaWithAlunos,
+  inactivateAluno,
   listTurmas,
   setTurmaStatus,
   updateTurmaMetadata,
@@ -225,6 +226,15 @@ export function App(): React.ReactElement {
     await refreshActiveTurma(user.uid, selectedTurmaId);
   };
 
+  const handleInactivateAluno = async (studentKey: string) => {
+    if (!user || !selectedTurmaId) {
+      return;
+    }
+    await inactivateAluno(user.uid, selectedTurmaId, studentKey);
+    await refreshActiveTurma(user.uid, selectedTurmaId);
+    await refreshTurmas(user.uid);
+  };
+
   if (!user) {
     return <LoginView onSignIn={handleSignIn} />;
   }
@@ -296,6 +306,7 @@ export function App(): React.ReactElement {
             lessons={activeTurma.lessons}
             onClose={() => setSelectedStudentKey(null)}
             onAddComment={handleAddAlunoComment}
+            onInactivate={handleInactivateAluno}
           />
         )}
       </main>
