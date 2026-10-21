@@ -9,6 +9,7 @@ import {
 } from 'firebase/auth';
 import {
   collection,
+  deleteDoc,
   doc,
   getDoc,
   getDocs,
@@ -43,6 +44,7 @@ export function canAddTeachers(user: AuthUser | null | undefined): boolean {
 
 const LOCAL_AUTH_STORAGE_KEY = 'juntos:auth_user';
 const LOCAL_PROFESSORES_KEY = 'juntos:professores';
+const LOCAL_REVOKED_PROFESSORES_KEY = 'juntos:revoked_professores';
 
 export class AuthServiceError extends Error {
   readonly code: string;
@@ -254,6 +256,67 @@ function writeLocalProfessores(list: ProfessorRecord[]): void {
   }
 }
 
+function readRevokedProfessores(): string[] {
+  try {
+    const raw = localStorage.getItem(LOCAL_REVOKED_PROFESSORES_KEY);
+    if (raw) {
+      const parsed = JSON.parse(raw);
+      if (Array.isArray(parsed)) {
+        return parsed;
+      }
+    }
+  } catch {
+    // Fallback
+  }
+  return [];
+}
+
+function addRevokedProfessor(identifier: string): void {
+  try {
+    const current = readRevokedProfessores();
+    const normalized = identifier.trim().toLowerCase();
+    if (!current.includes(normalized)) {
+      current.push(normalized);
+      localStorage.setItem(
+        LOCAL_REVOKED_PROFESSORES_KEY,
+        JSON.stringify(current)
+      );
+    }
+  } catch {
+    // Ignore
+  }
+}
+
+async function deleteUserTurmasAndAlunos(uid: string): Promise<void> {
+  const db = getFirestoreDb();
+  if (db) {
+    const turmasRef = collection(db, 'users', uid, 'turmas');
+    const turmasSnap = await getDocs(turmasRef);
+    for (const turmaDoc of turmasSnap.docs) {
+      const alunosRef = collection(
+        db,
+        'users',
+        uid,
+        'turmas',
+        turmaDoc.id,
+        'alunos'
+      );
+      const alunosSnap = await getDocs(alunosRef);
+      for (const alunoDoc of alunosSnap.docs) {
+        await deleteDoc(alunoDoc.ref);
+      }
+      await deleteDoc(turmaDoc.ref);
+    }
+    return;
+  }
+
+  try {
+    localStorage.removeItem(`juntos:repo:${uid}`);
+  } catch {
+    // Ignore storage quota errors in restricted environments
+  }
+}
+
 export function getCurrentAuthUser(): AuthUser | null {
   const fbAuth = getFirebaseAuth();
   if (fbAuth) {
@@ -310,8 +373,10 @@ export async function signInProfessor(
       if (trimmedEmail.toLowerCase() !== ADMIN_EMAIL.toLowerCase()) {
         const db = getFirestoreDb();
         if (db) {
-          const profDoc = await getDoc(doc(db, 'professores', signedIn.uid));
-          if (profDoc.exists() && profDoc.data().status === 'inativo') {
+          const revokedDoc = await getDoc(
+            doc(db, 'revoked_users', signedIn.uid)
+          );
+          if (revokedDoc.exists()) {
             await signOut(fbAuth);
             throw new AuthServiceError(
               'auth/user-disabled',
@@ -335,11 +400,11 @@ export async function signInProfessor(
   }
 
   if (trimmedEmail.toLowerCase() !== ADMIN_EMAIL.toLowerCase()) {
-    const list = readLocalProfessores();
-    const found = list.find(
-      (p) => p.email.toLowerCase() === trimmedEmail.toLowerCase()
-    );
-    if (found && found.status === 'inativo') {
+    const revoked = readRevokedProfessores();
+    if (
+      revoked.includes(trimmedEmail.toLowerCase()) ||
+      revoked.includes(buildDemoUid(trimmedEmail).toLowerCase())
+    ) {
       throw new AuthServiceError(
         'auth/user-disabled',
         mapAuthErrorToPtBr('auth/user-disabled')
@@ -446,6 +511,7 @@ export async function registerProfessor(
 
       const db = getFirestoreDb();
       if (db) {
+        await deleteDoc(doc(db, 'revoked_users', newUser.uid)).catch(() => {});
         await setDoc(doc(db, 'professores', newUser.uid), {
           uid: newUser.uid,
           email: newUser.email,
@@ -471,6 +537,20 @@ export async function registerProfessor(
     email: trimmedEmail,
     isDemo: true,
   };
+
+  const revoked = readRevokedProfessores().filter(
+    (id) =>
+      id !== trimmedEmail.toLowerCase() &&
+      id !== newUser.uid.toLowerCase()
+  );
+  try {
+    localStorage.setItem(
+      LOCAL_REVOKED_PROFESSORES_KEY,
+      JSON.stringify(revoked)
+    );
+  } catch {
+    // Ignore
+  }
 
   const list = readLocalProfessores();
   const existingIdx = list.findIndex(
@@ -553,11 +633,16 @@ export async function removeProfessor(
           mapAuthErrorToPtBr('auth/cannot-remove-admin')
         );
       }
-      await updateDoc(profRef, {
-        status: 'inativo',
-        deactivatedAt: new Date().toISOString(),
+      // 1. Registra como revogado para impedir futuros logins
+      await setDoc(doc(db, 'revoked_users', targetUid), {
+        email: data.email,
+        revokedAt: new Date().toISOString(),
       });
+      // 2. Remove da coleção de professores para que não conste mais na listagem
+      await deleteDoc(profRef);
     }
+    // 3. Remove todas as turmas e alunos do professor
+    await deleteUserTurmasAndAlunos(targetUid);
     return;
   }
 
@@ -569,10 +654,18 @@ export async function removeProfessor(
       mapAuthErrorToPtBr('auth/cannot-remove-admin')
     );
   }
-  const updated = list.map((p) =>
-    p.uid === targetUid
-      ? { ...p, status: 'inativo' as const, deactivatedAt: new Date().toISOString() }
-      : p
-  );
+
+  if (target) {
+    addRevokedProfessor(target.email);
+    addRevokedProfessor(target.uid);
+  } else {
+    addRevokedProfessor(targetUid);
+  }
+
+  // Remove completamente da lista de professores (não aparece mais!)
+  const updated = list.filter((p) => p.uid !== targetUid);
   writeLocalProfessores(updated);
+
+  // Remove todas as turmas e alunos do professor
+  await deleteUserTurmasAndAlunos(targetUid);
 }

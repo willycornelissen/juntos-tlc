@@ -100,14 +100,16 @@ export function AddUserModal({
     setRemovingUid(prof.uid);
     try {
       await removeProfessor(adminUser, prof.uid);
-      setSuccessMessage(`Acesso do professor "${prof.email}" revogado com sucesso.`);
+      setSuccessMessage(
+        `Professor "${prof.email}" e todas as suas turmas foram removidos com sucesso.`
+      );
       setConfirmingUid(null);
       await loadProfessores();
     } catch (err) {
       setErrorMessage(
         err instanceof Error
           ? err.message
-          : 'Não foi possível revogar o acesso do professor.'
+          : 'Não foi possível remover o professor e suas turmas.'
       );
     } finally {
       setRemovingUid(null);
@@ -137,7 +139,8 @@ export function AddUserModal({
         </div>
 
         <p className="card-meta" style={{ marginBottom: '1.25rem' }}>
-          Cadastre novos professores ou revogue o acesso de professores previamente registrados.
+          Cadastre novos professores ou remova professores e todas as turmas
+          associadas a eles do sistema.
         </p>
 
         {!isAuthorized ? (
@@ -306,7 +309,7 @@ export function AddUserModal({
                       </div>
 
                       <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                        {!isAdmin && !isInactive && !isConfirming && (
+                        {!isAdmin && !isConfirming && (
                           <button
                             type="button"
                             className="btn btn-secondary"
@@ -319,7 +322,7 @@ export function AddUserModal({
                             onClick={() => setConfirmingUid(prof.uid)}
                             aria-label={`Remover professor ${prof.email}`}
                           >
-                            Remover Acesso
+                            Remover Professor
                           </button>
                         )}
 
@@ -329,6 +332,7 @@ export function AddUserModal({
                               display: 'flex',
                               alignItems: 'center',
                               gap: '0.4rem',
+                              flexWrap: 'wrap',
                             }}
                           >
                             <span
@@ -338,7 +342,7 @@ export function AddUserModal({
                                 fontWeight: 600,
                               }}
                             >
-                              Confirmar remoção?
+                              Excluir professor e turmas?
                             </span>
                             <button
                               type="button"
@@ -350,7 +354,7 @@ export function AddUserModal({
                               disabled={isRemoving}
                               onClick={() => void handleRemove(prof)}
                             >
-                              {isRemoving ? 'Removendo...' : 'Sim, remover'}
+                              {isRemoving ? 'Excluindo...' : 'Sim, excluir'}
                             </button>
                             <button
                               type="button"

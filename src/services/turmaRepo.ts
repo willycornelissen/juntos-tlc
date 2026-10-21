@@ -583,3 +583,40 @@ export async function inactivateAluno(
   return { turma: updatedTurma, aluno: updatedAluno };
 }
 
+export async function deleteAllTurmasForUser(uid: string): Promise<void> {
+  const db = getFirestoreDb();
+  if (db) {
+    const turmasRef = collection(db, 'users', uid, 'turmas');
+    const turmasSnap = await getDocs(turmasRef);
+    const operations: Array<(batch: ReturnType<typeof writeBatch>) => void> = [];
+
+    for (const turmaDoc of turmasSnap.docs) {
+      const alunosRef = collection(
+        db,
+        'users',
+        uid,
+        'turmas',
+        turmaDoc.id,
+        'alunos'
+      );
+      const alunosSnap = await getDocs(alunosRef);
+      for (const alunoDoc of alunosSnap.docs) {
+        operations.push((batch) => batch.delete(alunoDoc.ref));
+      }
+      operations.push((batch) => batch.delete(turmaDoc.ref));
+    }
+
+    if (operations.length > 0) {
+      await commitChunkedOperations(db, operations);
+    }
+    return;
+  }
+
+  memoryStore.delete(uid);
+  try {
+    localStorage.removeItem(`${LOCAL_REPO_PREFIX}${uid}`);
+  } catch {
+    // Ignore storage errors in restricted environments
+  }
+}
+

@@ -200,14 +200,25 @@ describe('services/authService', () => {
       'Não é possível remover o usuário administrador principal.'
     );
 
-    // Remove (revoke) teacher access
+    // Create dummy turma in teacher's storage to verify cascade deletion
+    localStorage.setItem(
+      `juntos:repo:${teacher.uid}`,
+      JSON.stringify({ turmas: { 'turma-teste': { id: 'turma-teste' } } })
+    );
+    expect(localStorage.getItem(`juntos:repo:${teacher.uid}`)).not.toBeNull();
+
+    // Remove professor and all associated turmas
     await removeProfessor(adminUser, teacher.uid);
 
     const updatedList = await listProfessores(adminUser);
     const maria = updatedList.find((p) => p.uid === teacher.uid);
-    expect(maria?.status).toBe('inativo');
+    // Professor must not appear in the list anymore
+    expect(maria).toBeUndefined();
 
-    // Attempting to sign in with revoked access is blocked
+    // Teacher's turmas must be completely deleted
+    expect(localStorage.getItem(`juntos:repo:${teacher.uid}`)).toBeNull();
+
+    // Attempting to sign in with removed credentials is blocked
     await expect(
       signInProfessor('maria.prof@escola.org', 'senha123456')
     ).rejects.toThrow('Acesso revogado pelo administrador.');

@@ -114,7 +114,7 @@ describe('components/AddUserModal', () => {
     expect(screen.getByText('maria.professora@escola.org')).toBeInTheDocument();
   });
 
-  it('allows revoking access with inline confirmation', async () => {
+  it('allows removing a professor and their turmas with inline confirmation and removes them from the list', async () => {
     // Pre-populate with another teacher
     await authService.registerProfessor(
       adminUser,
@@ -133,17 +133,20 @@ describe('components/AddUserModal', () => {
     });
     fireEvent.click(removeBtn);
 
-    expect(screen.getByText('Confirmar remoção?')).toBeInTheDocument();
-    const confirmBtn = screen.getByRole('button', { name: /sim, remover/i });
+    expect(
+      screen.getByText('Excluir professor e turmas?')
+    ).toBeInTheDocument();
+    const confirmBtn = screen.getByRole('button', { name: /sim, excluir/i });
     fireEvent.click(confirmBtn);
 
     await waitFor(() => {
       expect(screen.getByRole('status')).toHaveTextContent(
-        'Acesso do professor "pedro.prof@escola.org" revogado com sucesso.'
+        'Professor "pedro.prof@escola.org" e todas as suas turmas foram removidos com sucesso.'
       );
     });
 
-    expect(screen.getByText('Acesso Revogado')).toBeInTheDocument();
+    // The teacher must not appear in the list anymore
+    expect(screen.queryByText('pedro.prof@escola.org')).not.toBeInTheDocument();
   });
 
   it('closes dialog when clicking Fechar button in header', () => {
