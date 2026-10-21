@@ -59,6 +59,13 @@ export function LoginView({ onSignIn }: LoginViewProps): React.ReactElement {
   return (
     <div className="login-wrapper">
       <div className="login-card">
+        <div className="login-logo-wrapper">
+          <img
+            src={`${import.meta.env.BASE_URL}juntos.png`}
+            alt="Logotipo Juntos"
+            className="login-logo"
+          />
+        </div>
         <h1>Juntos.</h1>
         <p className="subtitle">
           Acompanhamento de turmas, chamadas e fichas particulares de alunos.

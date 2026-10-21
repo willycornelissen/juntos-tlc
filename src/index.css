@@ -117,6 +117,26 @@ body {
   box-shadow: var(--shadow);
 }
 
+.login-logo-wrapper {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 1.5rem;
+  background: #ffffff;
+  border-radius: 8px;
+  padding: 0.75rem 1rem;
+  border: 1px solid var(--border);
+}
+
+.login-logo {
+  max-width: 220px;
+  width: 100%;
+  height: auto;
+  max-height: 85px;
+  object-fit: contain;
+  display: block;
+}
+
 .login-card h1 {
   font-family: Georgia, 'Times New Roman', serif;
   font-size: 2.25rem;

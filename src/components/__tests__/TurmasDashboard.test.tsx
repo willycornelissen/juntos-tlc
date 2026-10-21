@@ -55,6 +55,10 @@ describe('components/LoginView & TurmasDashboard', () => {
 
     render(<LoginView onSignIn={onSignIn} />);
 
+    expect(
+      screen.getByRole('img', { name: /logotipo juntos/i })
+    ).toBeInTheDocument();
+
     fireEvent.change(screen.getByLabelText(/e-mail do professor/i), {
       target: { value: 'willy@exemplo.com' },
     });
