@@ -1,4 +1,5 @@
 import React, { useMemo, useState } from 'react';
+import { RelatorioEncerramentoView } from './RelatorioEncerramentoView';
 import {
   computeLessonPresenceRate,
   computeStudentMetrics,
@@ -14,6 +15,8 @@ import {
 } from '../domain/types';
 
 export type StudentStatusFilter = 'Todos' | 'Ativos' | 'Inscrição Baixada';
+
+export type TurmaDetailTab = 'matriz' | 'relatorio';
 
 export interface TurmaDetailViewProps {
   turma: Turma;
@@ -52,6 +55,9 @@ export function TurmaDetailView({
   const [showCloseForm, setShowCloseForm] = useState(false);
   const [closingComment, setClosingComment] = useState('');
   const [changingStatus, setChangingStatus] = useState(false);
+
+  // View tab state (Matriz vs Relatório)
+  const [activeTab, setActiveTab] = useState<TurmaDetailTab>('matriz');
 
   // Student filter & search state
   const [statusFilter, setStatusFilter] =
@@ -247,12 +253,25 @@ export function TurmaDetailView({
           style={{
             marginBottom: '1rem',
             background: 'var(--surface-muted)',
+            display: 'flex',
+            flexDirection: 'row',
+            justifyContent: 'space-between',
+            alignItems: 'center',
+            flexWrap: 'wrap',
+            gap: '0.75rem',
           }}
         >
           <span>
             Esta turma está <strong>Encerrada</strong>. A reimportação de
             planilhas (.xlsx) está bloqueada até que a turma seja reaberta.
           </span>
+          <button
+            type="button"
+            className="btn btn-secondary"
+            onClick={() => setActiveTab('relatorio')}
+          >
+            Ver Relatório de Encerramento →
+          </button>
         </div>
       )}
 
@@ -430,7 +449,65 @@ export function TurmaDetailView({
         )}
       </div>
 
-      {/* Filter Bar */}
+      {/* View Switcher Tabs */}
+      <div
+        role="tablist"
+        aria-label="Visualizações da turma"
+        style={{
+          display: 'flex',
+          gap: '0.6rem',
+          marginBottom: '1.25rem',
+          borderBottom: '1px solid var(--border)',
+          paddingBottom: '0.75rem',
+        }}
+      >
+        <button
+          type="button"
+          role="tab"
+          aria-selected={activeTab === 'matriz'}
+          className={`btn ${activeTab === 'matriz' ? '' : 'btn-secondary'}`}
+          onClick={() => setActiveTab('matriz')}
+        >
+          📋 Matriz de Chamada
+        </button>
+        <button
+          type="button"
+          role="tab"
+          aria-selected={activeTab === 'relatorio'}
+          className={`btn ${activeTab === 'relatorio' ? '' : 'btn-secondary'}`}
+          style={
+            turma.status === 'Encerrada' && activeTab !== 'relatorio'
+              ? { borderColor: 'var(--primary)', color: 'var(--primary)', fontWeight: 600 }
+              : {}
+          }
+          onClick={() => setActiveTab('relatorio')}
+        >
+          📊 Relatório de Encerramento
+          {turma.status === 'Encerrada' && (
+            <span
+              style={{
+                marginLeft: '0.5rem',
+                fontSize: '0.75rem',
+                background: 'var(--primary)',
+                color: '#ffffff',
+                padding: '0.1rem 0.45rem',
+                borderRadius: '999px',
+                verticalAlign: 'middle',
+              }}
+            >
+              Disponível
+            </span>
+          )}
+        </button>
+      </div>
+
+      {activeTab === 'relatorio' ? (
+        <div style={{ marginBottom: '2rem' }}>
+          <RelatorioEncerramentoView turma={turma} alunos={alunos} />
+        </div>
+      ) : (
+        <>
+          {/* Filter Bar */}
       <div
         className="card"
         style={{
@@ -600,6 +677,8 @@ export function TurmaDetailView({
           </tbody>
         </table>
       </div>
+      </>
+      )}
 
       {/* Class Comments Section */}
       <div className="card">

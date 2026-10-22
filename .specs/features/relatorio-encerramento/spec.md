@@ -53,4 +53,4 @@ Como usuário visualizando a turma, quero alternar entre a matriz de chamadas e 
 | --- | --- | --- | --- |
 | ENCERR-01 | US-01 | Funções de cálculo estatístico e agregação de métricas para encerramento | verified |
 | ENCERR-02 | US-02 | Componentes visuais dos gráficos e cards de KPIs do relatório | verified |
-| ENCERR-03 | US-03 | Integração de navegação e alternância de abas em TurmaDetailView | pending |
+| ENCERR-03 | US-03 | Integração de navegação e alternância de abas em TurmaDetailView | verified |

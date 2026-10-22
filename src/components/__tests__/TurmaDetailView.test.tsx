@@ -359,4 +359,69 @@ describe('components/TurmaDetailView', () => {
     );
     expect(onUpdateMetadata).not.toHaveBeenCalled();
   });
+
+  it('allows switching between Matriz and Relatório de Encerramento tabs (ENCERR-03)', () => {
+    render(
+      <TurmaDetailView
+        turma={sampleTurma}
+        alunos={sampleAlunos}
+        onBack={vi.fn()}
+        onSelectStudent={vi.fn()}
+        onOpenReimportModal={vi.fn()}
+        onUpdateMetadata={vi.fn()}
+        onChangeStatus={vi.fn()}
+        onAddTurmaComment={vi.fn()}
+      />
+    );
+
+    const matrizTab = screen.getByRole('tab', { name: /Matriz de Chamada/i });
+    const relatorioTab = screen.getByRole('tab', { name: /Relatório de Encerramento/i });
+
+    expect(matrizTab).toBeInTheDocument();
+    expect(relatorioTab).toBeInTheDocument();
+    expect(matrizTab).toHaveAttribute('aria-selected', 'true');
+
+    // Switch to report
+    fireEvent.click(relatorioTab);
+    expect(relatorioTab).toHaveAttribute('aria-selected', 'true');
+    expect(screen.getByText('Relatório de Encerramento')).toBeInTheDocument();
+    expect(screen.getByText(/Taxa de Retenção/i)).toBeInTheDocument();
+
+    // Switch back to matrix
+    fireEvent.click(matrizTab);
+    expect(matrizTab).toHaveAttribute('aria-selected', 'true');
+    expect(screen.getByLabelText('Matriz de chamada da turma')).toBeInTheDocument();
+  });
+
+  it('highlights report button and supports quick navigation from Encerrada banner (ENCERR-03)', () => {
+    const closedTurma: Turma = {
+      ...sampleTurma,
+      status: 'Encerrada',
+    };
+
+    render(
+      <TurmaDetailView
+        turma={closedTurma}
+        alunos={sampleAlunos}
+        onBack={vi.fn()}
+        onSelectStudent={vi.fn()}
+        onOpenReimportModal={vi.fn()}
+        onUpdateMetadata={vi.fn()}
+        onChangeStatus={vi.fn()}
+        onAddTurmaComment={vi.fn()}
+      />
+    );
+
+    expect(screen.getByText(/Disponível/i)).toBeInTheDocument();
+    const verRelatorioBtn = screen.getByRole('button', {
+      name: /Ver Relatório de Encerramento →/i,
+    });
+    expect(verRelatorioBtn).toBeInTheDocument();
+
+    fireEvent.click(verRelatorioBtn);
+    expect(screen.getByText('Relatório de Encerramento')).toBeInTheDocument();
+    expect(
+      screen.getByRole('region', { name: /Conclusão vs. Evasão/i })
+    ).toBeInTheDocument();
+  });
 });
