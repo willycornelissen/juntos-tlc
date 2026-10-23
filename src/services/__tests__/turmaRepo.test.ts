@@ -5,9 +5,11 @@ import {
   applyReimportPlan,
   chunkArray,
   createTurmaFromImport,
+  getLocalDataForMigration,
   getTurmaWithAlunos,
   inactivateAluno,
   listTurmas,
+  migrateLocalDataToFirestore,
   resetLocalStoreForTests,
   setTurmaStatus,
   updateTurmaMetadata,
@@ -443,5 +445,44 @@ describe('services/turmaRepo', () => {
     await expect(
       inactivateAluno('uid-prof-1', turma.id, '99999')
     ).rejects.toThrow('Aluno não encontrado na turma.');
+  });
+
+  it('scans localStorage and migrates local turmas and students to target user', async () => {
+    // 1. Initial state: no local data to migrate
+    const emptySummary = getLocalDataForMigration();
+    expect(emptySummary.totalTurmas).toBe(0);
+    expect(emptySummary.totalAlunos).toBe(0);
+
+    // 2. Populate legacy demo storage
+    const parsed = makeSampleParsedChamada();
+    const { turma, alunos } = await createTurmaFromImport(
+      'demo-professor',
+      {
+        nome: 'Turma Demo Pampulha',
+        diaHorario: 'Quarta-feira, 19h30',
+        local: 'Pampulha',
+        catedras: ['Filosofia'],
+      },
+      parsed
+    );
+
+    const summary = getLocalDataForMigration();
+    expect(summary.totalTurmas).toBe(1);
+    expect(summary.totalAlunos).toBe(alunos.length);
+    expect(summary.bundles[0].turma.id).toBe(turma.id);
+
+    // 3. Migrate to target user
+    const result = await migrateLocalDataToFirestore('uid-firebase-real');
+    expect(result.migratedTurmasCount).toBe(1);
+    expect(result.migratedAlunosCount).toBe(alunos.length);
+
+    // 4. Target user now has the turma
+    const targetTurmas = await listTurmas('uid-firebase-real');
+    expect(targetTurmas).toHaveLength(1);
+    expect(targetTurmas[0].nome).toBe('Turma Demo Pampulha');
+
+    // 5. Old demo key was removed and no more local data to migrate
+    const afterSummary = getLocalDataForMigration('uid-firebase-real');
+    expect(afterSummary.totalTurmas).toBe(0);
   });
 });

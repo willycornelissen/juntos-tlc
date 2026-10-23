@@ -26,7 +26,7 @@ import { getFirestoreDb } from './authService';
 const DEFAULT_BATCH_CHUNK_SIZE = 450;
 const LOCAL_REPO_PREFIX = 'juntos:repo:';
 
-interface StoredTurmaBundle {
+export interface StoredTurmaBundle {
   turma: Turma;
   alunos: Record<string, AlunoRecord>;
 }
@@ -618,5 +618,125 @@ export async function deleteAllTurmasForUser(uid: string): Promise<void> {
   } catch {
     // Ignore storage errors in restricted environments
   }
+}
+
+export interface MigrationSummary {
+  keysFound: string[];
+  totalTurmas: number;
+  totalAlunos: number;
+  bundles: StoredTurmaBundle[];
+}
+
+export function getLocalDataForMigration(currentUid?: string): MigrationSummary {
+  const keysFound: string[] = [];
+  const bundles: StoredTurmaBundle[] = [];
+  const seenTurmaIds = new Set<string>();
+
+  try {
+    for (let i = 0; i < localStorage.length; i++) {
+      const k = localStorage.key(i);
+      if (k && k.startsWith(LOCAL_REPO_PREFIX)) {
+        if (currentUid && k === `${LOCAL_REPO_PREFIX}${currentUid}`) {
+          continue;
+        }
+        const raw = localStorage.getItem(k);
+        if (raw) {
+          try {
+            const parsed = JSON.parse(raw) as UserStore;
+            if (parsed && typeof parsed === 'object' && parsed.turmas) {
+              const turmaList = Object.values(parsed.turmas);
+              if (turmaList.length > 0) {
+                keysFound.push(k);
+                for (const b of turmaList) {
+                  if (b && b.turma && b.turma.id && !seenTurmaIds.has(b.turma.id)) {
+                    seenTurmaIds.add(b.turma.id);
+                    bundles.push(b);
+                  }
+                }
+              }
+            }
+          } catch {
+            // Ignore corrupted JSON
+          }
+        }
+      }
+    }
+  } catch {
+    // Ignore restricted localStorage
+  }
+
+  let totalAlunos = 0;
+  for (const b of bundles) {
+    totalAlunos += Object.keys(b.alunos || {}).length;
+  }
+
+  return {
+    keysFound,
+    totalTurmas: bundles.length,
+    totalAlunos,
+    bundles,
+  };
+}
+
+export async function migrateLocalDataToFirestore(
+  targetUid: string
+): Promise<{ migratedTurmasCount: number; migratedAlunosCount: number }> {
+  const summary = getLocalDataForMigration(targetUid);
+  if (summary.bundles.length === 0) {
+    return { migratedTurmasCount: 0, migratedAlunosCount: 0 };
+  }
+
+  const db = getFirestoreDb();
+  if (db) {
+    const operations: Array<(batch: ReturnType<typeof writeBatch>) => void> = [];
+
+    for (const b of summary.bundles) {
+      const turmaRef = doc(db, 'users', targetUid, 'turmas', b.turma.id);
+      operations.push((batch) => batch.set(turmaRef, b.turma));
+
+      const alunos = Object.values(b.alunos || {});
+      for (const aluno of alunos) {
+        const alunoRef = doc(
+          db,
+          'users',
+          targetUid,
+          'turmas',
+          b.turma.id,
+          'alunos',
+          aluno.studentKey
+        );
+        operations.push((batch) => batch.set(alunoRef, aluno));
+      }
+    }
+
+    if (operations.length > 0) {
+      await commitChunkedOperations(db, operations);
+    }
+  } else {
+    const targetStore = readUserStore(targetUid);
+    for (const b of summary.bundles) {
+      targetStore.turmas[b.turma.id] = {
+        turma: { ...b.turma },
+        alunos: { ...b.alunos },
+      };
+    }
+    writeUserStore(targetUid, targetStore);
+  }
+
+  try {
+    for (const k of summary.keysFound) {
+      if (k !== `${LOCAL_REPO_PREFIX}${targetUid}`) {
+        localStorage.removeItem(k);
+      }
+    }
+    localStorage.setItem('juntos:migrated_at', new Date().toISOString());
+  } catch {
+    // Ignore
+  }
+
+  return {
+    migratedTurmasCount: summary.totalTurmas,
+    migratedAlunosCount: summary.totalAlunos,
+  };
 }
 

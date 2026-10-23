@@ -21,11 +21,14 @@ import {
   addTurmaComment,
   applyReimportPlan,
   createTurmaFromImport,
+  getLocalDataForMigration,
   getTurmaWithAlunos,
   inactivateAluno,
   listTurmas,
+  migrateLocalDataToFirestore,
   setTurmaStatus,
   updateTurmaMetadata,
+  type MigrationSummary,
 } from './services/turmaRepo';
 import { LoginView, TurmasDashboard } from './components/TurmasDashboard';
 import { TurmaDetailView } from './components/TurmaDetailView';
@@ -98,6 +101,32 @@ export function App(): React.ReactElement {
   );
   const [isReimportOpen, setIsReimportOpen] = useState(false);
   const [isAddUserOpen, setIsAddUserOpen] = useState(false);
+  const [migrationSummary, setMigrationSummary] = useState<MigrationSummary | null>(null);
+  const [isMigrating, setIsMigrating] = useState(false);
+  const [migrationMessage, setMigrationMessage] = useState<{
+    type: 'success' | 'error';
+    text: string;
+  } | null>(null);
+  const [isMigrationDismissed, setIsMigrationDismissed] = useState(() => {
+    try {
+      return localStorage.getItem('juntos:migration_dismissed') === 'true';
+    } catch {
+      return false;
+    }
+  });
+
+  const checkLocalMigration = useCallback((targetUid?: string) => {
+    try {
+      const summary = getLocalDataForMigration(targetUid);
+      if (summary.totalTurmas > 0) {
+        setMigrationSummary(summary);
+      } else {
+        setMigrationSummary(null);
+      }
+    } catch {
+      setMigrationSummary(null);
+    }
+  }, []);
 
   const refreshTurmas = useCallback(async (uid: string) => {
     const loaded = await listTurmas(uid);
@@ -123,12 +152,49 @@ export function App(): React.ReactElement {
         setActiveAlunos([]);
         setSelectedStudentKey(null);
         setIsAddUserOpen(false);
+        setMigrationSummary(null);
+        setMigrationMessage(null);
       } else {
         void refreshTurmas(authUser.uid);
+        checkLocalMigration(authUser.uid);
       }
     });
     return unsubscribe;
-  }, [refreshTurmas]);
+  }, [refreshTurmas, checkLocalMigration]);
+
+  const handlePerformMigration = async () => {
+    if (!user) return;
+    setIsMigrating(true);
+    setMigrationMessage(null);
+    try {
+      const result = await migrateLocalDataToFirestore(user.uid);
+      await refreshTurmas(user.uid);
+      setMigrationMessage({
+        type: 'success',
+        text: `Migração concluída com sucesso! ${result.migratedTurmasCount} turma(s) e ${result.migratedAlunosCount} aluno(s) foram salvos na nuvem.`,
+      });
+      setMigrationSummary(null);
+    } catch (err) {
+      setMigrationMessage({
+        type: 'error',
+        text:
+          err instanceof Error
+            ? err.message
+            : 'Falha ao migrar dados locais para o Firebase.',
+      });
+    } finally {
+      setIsMigrating(false);
+    }
+  };
+
+  const handleDismissMigration = () => {
+    setIsMigrationDismissed(true);
+    try {
+      localStorage.setItem('juntos:migration_dismissed', 'true');
+    } catch {
+      // Ignore
+    }
+  };
 
   const handleSignIn = async (email: string, password: string) => {
     const signedIn = await signInProfessor(email, password);
@@ -279,6 +345,50 @@ export function App(): React.ReactElement {
       </header>
 
       <main className="container">
+        {migrationMessage && (
+          <div
+            className={migrationMessage.type === 'success' ? 'success-banner' : 'warning'}
+            role="alert"
+            style={{ marginBottom: '1.5rem' }}
+          >
+            {migrationMessage.text}
+          </div>
+        )}
+
+        {migrationSummary && migrationSummary.totalTurmas > 0 && !isMigrationDismissed && !selectedTurmaId && (
+          <div className="migration-card" role="region" aria-label="Migração de dados locais">
+            <div className="migration-card-content">
+              <div className="migration-card-header">
+                <span className="migration-badge">📦 Dados locais encontrados</span>
+                <h3>Deseja migrar seus dados para o Firebase?</h3>
+              </div>
+              <p className="migration-text">
+                Encontramos <strong>{migrationSummary.totalTurmas} turma(s)</strong> e{' '}
+                <strong>{migrationSummary.totalAlunos} aluno(s)</strong> salvos neste navegador.
+                Migre para a nuvem para que os dados fiquem sincronizados e acessíveis em qualquer dispositivo.
+              </p>
+            </div>
+            <div className="migration-card-actions">
+              <button
+                type="button"
+                className="btn"
+                onClick={() => void handlePerformMigration()}
+                disabled={isMigrating}
+              >
+                {isMigrating ? 'Migrando para a nuvem...' : 'Migrar para o Firebase'}
+              </button>
+              <button
+                type="button"
+                className="btn btn-secondary"
+                onClick={handleDismissMigration}
+                disabled={isMigrating}
+              >
+                Dispensar
+              </button>
+            </div>
+          </div>
+        )}
+
         {selectedTurmaId && activeTurma ? (
           <TurmaDetailView
             turma={activeTurma}
