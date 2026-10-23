@@ -1,0 +1,16 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // Dados da turma e alunos isolados por professor
+    match /users/{userId}/{document=**} {
+      allow read, write: if request.auth != null && request.auth.uid == userId;
+    }
+    // Gestão de professores e revogação de acessos
+    match /professores/{docId} {
+      allow read, write: if request.auth != null;
+    }
+    match /revoked_users/{docId} {
+      allow read, write: if request.auth != null;
+    }
+  }
+}
